@@ -1,12 +1,13 @@
 // src/app/api/seed/route.ts
-import { NextResponse, NextRequest } from 'next/server';
+
+import { NextResponse } from 'next/server';
 import { db } from '@/libs/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // ❗️確定放在 `app/api/seed/route.ts` 才會走 Edge Runtime
 export const dynamic = 'force-dynamic'; // 避免被預先靜態化
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   // 1. 建角色
   const charRef = await addDoc(collection(db, 'characters'), {
     name: '範例角色',
