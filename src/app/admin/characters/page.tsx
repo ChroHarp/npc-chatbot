@@ -62,15 +62,18 @@ export default function CharactersPage() {
   const columns: Column<(typeof characters)[number]>[] = [
     {
       header: 'Avatar',
-      accessor: (row) => (
-        <Image
-          src={row.avatarUrl}
-          alt={row.name}
-          width={40}
-          height={40}
-          className="rounded-full object-cover w-10 h-10"
-        />
-      ),
+      accessor: (row) =>
+        row.avatarUrl ? (
+          <Image
+            src={row.avatarUrl}
+            alt={row.name}
+            width={40}
+            height={40}
+            className="rounded-full object-cover w-10 h-10"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+        ),
     },
     { header: 'Name', accessor: (row) => row.name },
     { header: 'Description', accessor: (row) => row.description },
