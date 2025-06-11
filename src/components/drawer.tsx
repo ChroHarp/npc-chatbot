@@ -22,8 +22,8 @@ export function Drawer({
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="ml-auto h-full w-96 bg-white dark:bg-neutral-900 p-6 overflow-auto">
+      <div className="absolute inset-0 bg-black/50 z-40" onClick={onClose} />
+      <div className="ml-auto h-full w-96 bg-white dark:bg-neutral-900 p-6 overflow-auto z-50">
         {children}
       </div>
     </div>
