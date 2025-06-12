@@ -7,22 +7,23 @@ import { useDocument } from 'react-firebase-hooks/firestore'
 import Image from 'next/image'
 import { db } from '@/libs/firebase'
 import { updateCharacter } from '../actions'
+import { Rule, CharacterDoc } from '@/types'
 
 export default function EditCharacterPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [value] = useDocument(id ? doc(db, 'characters', id) : undefined)
-  const data = value?.data() as { name: string; avatarUrl: string; description: string } | undefined
+  const data = value?.data() as CharacterDoc | undefined
 
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const [rules, setRules] = useState<Rule[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (data) {
       setName(data.name)
-      setDescription(data.description)
+      setRules(data.rules || [{ keywords: [], responses: [] }])
     }
   }, [data])
 
@@ -31,7 +32,7 @@ export default function EditCharacterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    await updateCharacter(id, name, description, file ?? undefined)
+    await updateCharacter(id, name, rules, file ?? undefined)
     setLoading(false)
     router.push('/admin/characters')
   }
@@ -60,15 +61,130 @@ export default function EditCharacterPage() {
           Avatar
           <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
-        <label className="flex flex-col gap-1">
-          對話規則
-          <textarea
-            className="border rounded px-2 py-1"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-          />
-        </label>
+        <div className="flex flex-col gap-4">
+          {rules.map((rule, i) => (
+            <div key={i} className="border p-2 rounded flex flex-col gap-2">
+              <div>
+                <span className="font-medium">Keywords</span>
+                <input
+                  className="border rounded px-2 py-1 w-full mt-1"
+                  value={rule.keywords.join(',')}
+                  onChange={(e) => {
+                    const kws = e.target.value
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                    setRules((r) =>
+                      r.map((rr, idx) =>
+                        idx === i ? { ...rr, keywords: kws } : rr,
+                      ),
+                    )
+                  }}
+                  placeholder="keyword1, keyword2"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                {rule.responses.map((res, j) => (
+                  <div key={j} className="flex items-center gap-2">
+                    {res.type === 'text' ? (
+                      <input
+                        className="border rounded px-2 py-1 flex-1"
+                        value={res.value as string}
+                        onChange={(e) => {
+                          setRules((r) =>
+                            r.map((rr, idx) => {
+                              if (idx !== i) return rr
+                              const responses = rr.responses.map((rs, k) =>
+                                k === j ? { ...rs, value: e.target.value } : rs,
+                              )
+                              return { ...rr, responses }
+                            }),
+                          )
+                        }}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {typeof res.value === 'string' ? (
+                          <Image
+                            src={res.value}
+                            alt="response"
+                            width={40}
+                            height={40}
+                            className="object-cover w-10 h-10 rounded"
+                          />
+                        ) : (
+                          <Image
+                            src={URL.createObjectURL(res.value as File)}
+                            alt="preview"
+                            width={40}
+                            height={40}
+                            className="object-cover w-10 h-10 rounded"
+                          />
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            setRules((r) =>
+                              r.map((rr, idx) => {
+                                if (idx !== i) return rr
+                                const responses = rr.responses.map((rs, k) =>
+                                  k === j ? { ...rs, value: file } : rs,
+                                )
+                                return { ...rr, responses }
+                              }),
+                            )
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-sm border rounded"
+                    onClick={() =>
+                      setRules((r) =>
+                        r.map((rr, idx) =>
+                          idx === i
+                            ? { ...rr, responses: [...rr.responses, { type: 'text', value: '' }] }
+                            : rr,
+                        ),
+                      )
+                    }
+                  >
+                    Add Text
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-sm border rounded"
+                    onClick={() =>
+                      setRules((r) =>
+                        r.map((rr, idx) =>
+                          idx === i
+                            ? { ...rr, responses: [...rr.responses, { type: 'image', value: '' }] }
+                            : rr,
+                        ),
+                      )
+                    }
+                  >
+                    Add Image
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="px-3 py-1 border rounded self-start"
+            onClick={() => setRules((r) => [...r, { keywords: [], responses: [] }])}
+          >
+            新增回應規則
+          </button>
+        </div>
         <button type="submit" disabled={loading} className="self-start px-4 py-2 bg-black text-white rounded disabled:opacity-50">
           {loading ? '儲存中...' : '儲存'}
         </button>

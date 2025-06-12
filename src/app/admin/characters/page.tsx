@@ -9,6 +9,7 @@ import { db } from '@/libs/firebase'
 import { createCharacter } from './actions'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
+import { Rule } from '@/types'
 
 
 function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
@@ -55,10 +56,11 @@ export default function CharactersPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [value] = useCollection(collection(db, 'characters'))
 
-  const characters = value?.docs.map((doc) => ({
-    id: doc.id,
-    ...(doc.data() as { name: string; avatarUrl: string; description: string })
-  })) || []
+  const characters =
+    value?.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as { name: string; avatarUrl: string; rules: Rule[] })
+    })) || []
 
   const columns: Column<(typeof characters)[number]>[] = [
     {
@@ -74,7 +76,7 @@ export default function CharactersPage() {
       ),
     },
     { header: 'Name', accessor: (row) => row.name },
-    { header: 'Description', accessor: (row) => row.description },
+    { header: 'Rules', accessor: (row) => String(row.rules?.length ?? 0) },
     {
       header: '',
       accessor: (row) => (
