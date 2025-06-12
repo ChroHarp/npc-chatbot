@@ -17,6 +17,7 @@ export default function EditCharacterPage() {
 
   const [name, setName] = useState('')
   const [rules, setRules] = useState<Rule[]>([])
+  const [keywordInputs, setKeywordInputs] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -24,9 +25,19 @@ export default function EditCharacterPage() {
     const d = value?.data() as CharacterDoc | undefined
     if (d) {
       setName(d.name)
-      setRules(d.rules || [{ keywords: [], responses: [] }])
+      const r = d.rules || [{ keywords: [], responses: [] }]
+      setRules(r)
+      setKeywordInputs(r.map(() => ''))
     }
   }, [value])
+
+  useEffect(() => {
+    setKeywordInputs((inputs) => {
+      const arr = [...inputs]
+      while (arr.length < rules.length) arr.push('')
+      return arr.slice(0, rules.length)
+    })
+  }, [rules.length])
 
   if (!value) return <div className="p-6">Loading...</div>
 
@@ -67,22 +78,47 @@ export default function EditCharacterPage() {
             <div key={i} className="border p-2 rounded flex flex-col gap-2">
               <div>
                 <span className="font-medium">Keywords</span>
-                <input
-                  className="border rounded px-2 py-1 w-full mt-1"
-                  value={rule.keywords.join(',')}
-                  onChange={(e) => {
-                    const kws = e.target.value
-                      .split(',')
-                      .map((s) => s.trim())
-                      .filter(Boolean)
-                    setRules((r) =>
-                      r.map((rr, idx) =>
-                        idx === i ? { ...rr, keywords: kws } : rr,
-                      ),
-                    )
-                  }}
-                  placeholder="keyword1, keyword2"
-                />
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {rule.keywords.map((kw, kidx) => (
+                    <span
+                      key={kidx}
+                      className="px-2 py-1 text-sm bg-gray-200 rounded"
+                    >
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-1">
+                  <input
+                    className="border rounded px-2 py-1 flex-1"
+                    value={keywordInputs[i] ?? ''}
+                    onChange={(e) =>
+                      setKeywordInputs((ins) =>
+                        ins.map((v, idx) => (idx === i ? e.target.value : v)),
+                      )
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 border rounded"
+                    onClick={() => {
+                      const kw = keywordInputs[i]?.trim()
+                      if (!kw) return
+                      setRules((r) =>
+                        r.map((rr, idx) =>
+                          idx === i
+                            ? { ...rr, keywords: [...rr.keywords, kw] }
+                            : rr,
+                        ),
+                      )
+                      setKeywordInputs((ins) =>
+                        ins.map((v, idx) => (idx === i ? '' : v)),
+                      )
+                    }}
+                  >
+                    新增
+                  </button>
+                </div>
               </div>
               <div className="flex flex-col gap-2">
                 {rule.responses.map((res, j) => (
@@ -175,13 +211,28 @@ export default function EditCharacterPage() {
                     Add Image
                   </button>
                 </div>
+                <button
+                  type="button"
+                  className="text-red-600 text-sm self-start"
+                  onClick={() => {
+                    if (confirm('確定要刪除這條規則嗎？')) {
+                      setRules((r) => r.filter((_, idx) => idx !== i))
+                      setKeywordInputs((ins) => ins.filter((_, idx) => idx !== i))
+                    }
+                  }}
+                >
+                  刪除規則
+                </button>
               </div>
             </div>
           ))}
           <button
             type="button"
             className="px-3 py-1 border rounded self-start"
-            onClick={() => setRules((r) => [...r, { keywords: [], responses: [] }])}
+            onClick={() => {
+              setRules((r) => [...r, { keywords: [], responses: [] }])
+              setKeywordInputs((ins) => [...ins, ''])
+            }}
           >
             新增回應規則
           </button>
