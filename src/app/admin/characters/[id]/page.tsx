@@ -21,13 +21,14 @@ export default function EditCharacterPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (data) {
-      setName(data.name)
-      setRules(data.rules || [{ keywords: [], responses: [] }])
+    const d = value?.data() as CharacterDoc | undefined
+    if (d) {
+      setName(d.name)
+      setRules(d.rules || [{ keywords: [], responses: [] }])
     }
-  }, [data])
+  }, [value])
 
-  if (!data) return <div className="p-6">Loading...</div>
+  if (!value) return <div className="p-6">Loading...</div>
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,7 +43,7 @@ export default function EditCharacterPage() {
       <h1 className="text-xl">編輯角色</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Image
-          src={file ? URL.createObjectURL(file) : data.avatarUrl || 'https://placehold.co/80x80.png'}
+          src={file ? URL.createObjectURL(file) : data?.avatarUrl || 'https://placehold.co/80x80.png'}
           alt={name}
           width={80}
           height={80}
