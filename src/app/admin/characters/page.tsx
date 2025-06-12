@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useCollection } from 'react-firebase-hooks/firestore'
 import { collection } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
@@ -74,6 +75,14 @@ export default function CharactersPage() {
     },
     { header: 'Name', accessor: (row) => row.name },
     { header: 'Description', accessor: (row) => row.description },
+    {
+      header: '',
+      accessor: (row) => (
+        <Link href={`/admin/characters/${row.id}`} className="text-blue-500 underline">
+          編輯
+        </Link>
+      ),
+    },
   ]
 
   return (
