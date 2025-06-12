@@ -141,7 +141,7 @@ export default function EditCharacterPage() {
                       />
                     ) : (
                       <div className="flex items-center gap-2">
-                        {typeof res.value === 'string' ? (
+                        {typeof res.value === 'string' && res.value ? (
                           <Image
                             src={res.value}
                             alt="response"
@@ -149,7 +149,8 @@ export default function EditCharacterPage() {
                             height={40}
                             className="object-cover w-10 h-10 rounded"
                           />
-                        ) : (
+                        ) : null}
+                        {typeof res.value !== 'string' && res.value ? (
                           <Image
                             src={URL.createObjectURL(res.value as File)}
                             alt="preview"
@@ -157,7 +158,7 @@ export default function EditCharacterPage() {
                             height={40}
                             className="object-cover w-10 h-10 rounded"
                           />
-                        )}
+                        ) : null}
                         <input
                           type="file"
                           accept="image/*"
