@@ -101,8 +101,7 @@ export default function CharactersPage() {
             fill
             className="object-cover"
             style={{
-              objectPosition: `${row.avatarX ?? 0}% ${row.avatarY ?? 0}%`,
-              transform: `scale(${row.avatarScale ?? 1})`,
+              transform: `translate(${row.avatarX ?? 0}%, ${row.avatarY ?? 0}%) scale(${row.avatarScale ?? 1})`,
             }}
           />
         </div>

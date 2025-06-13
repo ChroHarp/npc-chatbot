@@ -105,8 +105,7 @@ export default function EditCharacterPage() {
             fill
             className="object-cover"
             style={{
-              objectPosition: `${avatarX}% ${avatarY}%`,
-              transform: `scale(${avatarScale})`,
+              transform: `translate(${avatarX}%, ${avatarY}%) scale(${avatarScale})`,
             }}
           />
         </div>
@@ -214,8 +213,7 @@ export default function EditCharacterPage() {
                               fill
                               className="object-cover"
                               style={{
-                                objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
-                                transform: `scale(${res.scale ?? 1})`,
+                                transform: `translate(${res.x ?? 0}%, ${res.y ?? 0}%) scale(${res.scale ?? 1})`,
                               }}
                             />
                           </div>
@@ -228,8 +226,7 @@ export default function EditCharacterPage() {
                               fill
                               className="object-cover"
                               style={{
-                                objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
-                                transform: `scale(${res.scale ?? 1})`,
+                                transform: `translate(${res.x ?? 0}%, ${res.y ?? 0}%) scale(${res.scale ?? 1})`,
                               }}
                             />
                           </div>
@@ -332,8 +329,7 @@ export default function EditCharacterPage() {
                 fill
                 className="object-cover"
                 style={{
-                  objectPosition: `${avatarX}% ${avatarY}%`,
-                  transform: `scale(${avatarScale})`,
+                  transform: `translate(${avatarX}%, ${avatarY}%) scale(${avatarScale})`,
                 }}
               />
             </div>
@@ -388,8 +384,7 @@ export default function EditCharacterPage() {
                 fill
                 className="object-cover"
                 style={{
-                  objectPosition: `${editingX}% ${editingY}%`,
-                  transform: `scale(${editingScale})`,
+                  transform: `translate(${editingX}%, ${editingY}%) scale(${editingScale})`,
                 }}
               />
             </div>
