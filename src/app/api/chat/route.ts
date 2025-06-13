@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { conversations } from './store'
 import type { ChatMessage } from '@/types/chat'
-import { characters } from '@/data/characters'
+import { getCharacter } from '@/data/characters'
 
 export async function POST(req: Request) {
   const { conversationId, message } = await req.json()
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   }
   convo.messages.push(userMsg)
 
-  const character = characters[convo.characterId] || characters.default
+  const character = await getCharacter(convo.characterId)
   let replyText = character.defaultResponse
   for (const rule of character.rules) {
     if (rule.keywords.some((k) => message.includes(k))) {

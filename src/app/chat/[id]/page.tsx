@@ -1,6 +1,10 @@
 'use client'
 import { useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { doc } from 'firebase/firestore'
+import { useDocument } from 'react-firebase-hooks/firestore'
+import { db } from '@/libs/firebase'
+import type { CharacterDoc } from '@/types'
 import { ChatBubble } from '@/components/ChatBubble'
 import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
@@ -8,6 +12,10 @@ import { useChat } from '@/hooks/useChat'
 export default function CharacterChatPage() {
   const { id } = useParams<{ id: string }>()
   const characterId = id || 'default'
+  const [value] = useDocument(
+    characterId ? doc(db, 'characters', characterId) : undefined,
+  )
+  const data = value?.data() as CharacterDoc | undefined
   const { messages, send, clear, loading, error } = useChat(characterId)
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -26,7 +34,7 @@ export default function CharacterChatPage() {
   return (
     <div className="h-screen flex flex-col max-w-md mx-auto w-full">
       <header className="p-4 border-b flex justify-between items-center">
-        <h1 className="font-semibold">NPC Chat</h1>
+        <h1 className="font-semibold">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-red-600" onClick={clear}>
           清除
         </button>
