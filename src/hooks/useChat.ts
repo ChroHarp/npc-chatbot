@@ -38,7 +38,14 @@ export function useChat(characterId: string) {
         } else {
           setConversationId(id)
           const res = await fetch(`/api/chat/history?conversationId=${id}`)
-          if (!res.ok) throw new Error('history failed')
+          if (!res.ok) {
+            if (res.status === 404) {
+              localStorage.removeItem(storageKey)
+              setConversationId(null)
+              return init(true)
+            }
+            throw new Error('history failed')
+          }
           const data: HistoryResponse = await res.json()
           setMessages(data.messages || [])
         }
@@ -73,7 +80,13 @@ export function useChat(characterId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId, message: text }),
       })
-      if (!res.ok) throw new Error('post failed')
+      if (!res.ok) {
+        if (res.status === 404) {
+          clear()
+          throw new Error('not found')
+        }
+        throw new Error('post failed')
+      }
       const data: PostResponse = await res.json()
       setMessages((prev) => [...prev, ...data.messages])
     } catch {
