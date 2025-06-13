@@ -27,12 +27,22 @@ export async function createCharacter(name: string, file: File) {
     rules: [
       {
         keywords: [],
-        responses: [],
+        responses: [
+          {
+            type: 'text',
+            value: `您好，我是${name}，很高興認識您。`,
+          },
+        ],
         type: 'firstLogin',
       },
       {
         keywords: [],
-        responses: [],
+        responses: [
+          {
+            type: 'text',
+            value: '我不太懂您的意思？',
+          },
+        ],
         type: 'default',
       },
     ],
