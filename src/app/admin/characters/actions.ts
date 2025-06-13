@@ -28,6 +28,12 @@ export async function createCharacter(name: string, file: File) {
       {
         keywords: [],
         responses: [],
+        type: 'firstLogin',
+      },
+      {
+        keywords: [],
+        responses: [],
+        type: 'default',
       },
     ],
   }
@@ -70,7 +76,11 @@ export async function updateCharacter(
         responses.push(res)
       }
     }
-    processedRules.push({ keywords: rule.keywords, responses })
+    processedRules.push({
+      keywords: rule.keywords,
+      responses,
+      type: rule.type,
+    })
   }
 
   const data: Partial<CharacterDoc> = {

@@ -9,6 +9,7 @@ export interface ResponseItem {
 export interface Rule {
   keywords: string[]
   responses: ResponseItem[]
+  type?: 'firstLogin' | 'default'
 }
 
 export interface CharacterDoc {
