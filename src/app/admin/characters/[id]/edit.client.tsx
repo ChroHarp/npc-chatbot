@@ -246,7 +246,7 @@ export default function EditCharacterPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         {typeof res.value === 'string' && res.value ? (
-                          <div className="relative w-10 h-10 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
+                          <div className="relative w-24 h-24 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
                             <Image
                               src={res.value}
                               alt="response"
@@ -259,7 +259,7 @@ export default function EditCharacterPage() {
                           </div>
                         ) : null}
                         {typeof res.value !== 'string' && res.value ? (
-                          <div className="relative w-10 h-10 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
+                          <div className="relative w-24 h-24 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
                             <Image
                               src={URL.createObjectURL(res.value as File)}
                               alt="preview"
