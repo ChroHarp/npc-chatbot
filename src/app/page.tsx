@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
-import { ChatBubble, ChatMessage } from '@/components/ChatBubble'
+import { ChatBubble } from '@/components/ChatBubble'
+import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
 export default function ChatPage() {

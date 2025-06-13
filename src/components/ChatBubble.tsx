@@ -1,15 +1,7 @@
 'use client'
 import Image from 'next/image'
 import React from 'react'
-
-export interface ChatMessage {
-  id: string
-  role: 'user' | 'npc'
-  type: 'TEXT' | 'IMAGE' | 'YOUTUBE'
-  content: string
-  timestamp?: string
-  avatarUrl?: string
-}
+import type { ChatMessage } from '@/types/chat'
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user'

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ChatMessage } from '@/components/ChatBubble'
+import type { ChatMessage } from '@/types/chat'
 
 interface InitResponse {
   conversationId: string
