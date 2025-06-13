@@ -28,21 +28,7 @@ export default function EditCharacterPage() {
   const [avatarY, setAvatarY] = useState(0)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [editing, setEditing] = useState<{ rule: number; idx: number } | null>(null)
   const [avatarEditing, setAvatarEditing] = useState(false)
-
-  const editingItem =
-    editing && rules[editing.rule]?.responses[editing.idx]?.type === 'image'
-      ? rules[editing.rule].responses[editing.idx]
-      : null
-  const editingSrc = editingItem
-    ? typeof editingItem.value === 'string'
-      ? editingItem.value
-      : URL.createObjectURL(editingItem.value as File)
-    : ''
-  const editingScale = editingItem?.scale ?? 1
-  const editingX = editingItem?.x ?? 0
-  const editingY = editingItem?.y ?? 0
 
   useEffect(() => {
     const d = value?.data() as CharacterDoc | undefined
@@ -244,32 +230,24 @@ export default function EditCharacterPage() {
                         }}
                       />
                     ) : (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-1 items-start">
                         {typeof res.value === 'string' && res.value ? (
-                          <div className="relative w-24 h-24 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
-                            <Image
-                              src={res.value}
-                              alt="response"
-                              fill
-                              className="object-cover"
-                              style={{
-                                transform: `translate(${res.x ?? 0}%, ${res.y ?? 0}%) scale(${res.scale ?? 1})`,
-                              }}
-                            />
-                          </div>
+                          <Image
+                            src={res.value}
+                            alt="response"
+                            width={128}
+                            height={128}
+                            className="object-contain w-32 h-32"
+                          />
                         ) : null}
                         {typeof res.value !== 'string' && res.value ? (
-                          <div className="relative w-24 h-24 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
-                            <Image
-                              src={URL.createObjectURL(res.value as File)}
-                              alt="preview"
-                              fill
-                              className="object-cover"
-                              style={{
-                                transform: `translate(${res.x ?? 0}%, ${res.y ?? 0}%) scale(${res.scale ?? 1})`,
-                              }}
-                            />
-                          </div>
+                          <Image
+                            src={URL.createObjectURL(res.value as File)}
+                            alt="preview"
+                            width={128}
+                            height={128}
+                            className="object-contain w-32 h-32"
+                          />
                         ) : null}
                         <input
                           type="file"
@@ -419,97 +397,6 @@ export default function EditCharacterPage() {
               type="button"
               className="px-3 py-1 border rounded"
               onClick={() => setAvatarEditing(false)}
-            >
-              完成
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {editingItem ? (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded flex flex-col gap-2">
-            <div className="relative w-64 h-64 overflow-hidden">
-              <Image
-                src={editingSrc}
-                alt="edit"
-                fill
-                className="object-cover"
-                style={{
-                  transform: `translate(${editingX}%, ${editingY}%) scale(${editingScale})`,
-                }}
-              />
-            </div>
-            <label className="text-sm">
-              scale
-              <input
-                type="range"
-                min="1"
-                max="3"
-                step="0.1"
-                value={editingScale}
-                onChange={(e) => {
-                  if (!editing) return
-                  const v = Number(e.target.value)
-                  setRules((r) =>
-                    r.map((rr, ri) => {
-                      if (ri !== editing.rule) return rr
-                      const responses = rr.responses.map((rs, ci) =>
-                        ci === editing.idx ? { ...rs, scale: v } : rs,
-                      )
-                      return { ...rr, responses }
-                    }),
-                  )
-                }}
-              />
-            </label>
-            <label className="text-sm">
-              x
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                value={editingX}
-                onChange={(e) => {
-                  if (!editing) return
-                  const v = Number(e.target.value)
-                  setRules((r) =>
-                    r.map((rr, ri) => {
-                      if (ri !== editing.rule) return rr
-                      const responses = rr.responses.map((rs, ci) =>
-                        ci === editing.idx ? { ...rs, x: v } : rs,
-                      )
-                      return { ...rr, responses }
-                    }),
-                  )
-                }}
-              />
-            </label>
-            <label className="text-sm">
-              y
-              <input
-                type="range"
-                min="-100"
-                max="100"
-                value={editingY}
-                onChange={(e) => {
-                  if (!editing) return
-                  const v = Number(e.target.value)
-                  setRules((r) =>
-                    r.map((rr, ri) => {
-                      if (ri !== editing.rule) return rr
-                      const responses = rr.responses.map((rs, ci) =>
-                        ci === editing.idx ? { ...rs, y: v } : rs,
-                      )
-                      return { ...rr, responses }
-                    }),
-                  )
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              className="px-3 py-1 border rounded"
-              onClick={() => setEditing(null)}
             >
               完成
             </button>
