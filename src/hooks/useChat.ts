@@ -20,9 +20,10 @@ export function useChat(characterId: string) {
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const storageKey = `conversationId-${characterId}`
 
   useEffect(() => {
-    const id = localStorage.getItem('conversationId')
+    const id = localStorage.getItem(storageKey)
     async function fetchInit() {
       try {
         setLoading(true)
@@ -31,7 +32,7 @@ export function useChat(characterId: string) {
           const res = await fetch(`/api/chat/init?characterId=${characterId}`)
           if (!res.ok) throw new Error('init failed')
           const data: InitResponse = await res.json()
-          localStorage.setItem('conversationId', data.conversationId)
+          localStorage.setItem(storageKey, data.conversationId)
           setConversationId(data.conversationId)
           setMessages(data.messages || [])
         } else {
@@ -48,7 +49,7 @@ export function useChat(characterId: string) {
       }
     }
     fetchInit()
-  }, [characterId])
+  }, [characterId, storageKey])
 
   async function send(text: string) {
     if (!conversationId) return
@@ -79,7 +80,7 @@ export function useChat(characterId: string) {
   }
 
   function clear() {
-    localStorage.removeItem('conversationId')
+    localStorage.removeItem(storageKey)
     setConversationId(null)
     setMessages([])
   }
