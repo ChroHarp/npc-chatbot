@@ -1,5 +1,5 @@
 // src/app/admin/characters/actions.ts
-import { collection, addDoc, doc, updateDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
 import { db, storage, auth } from '@/libs/firebase'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { signInAnonymously } from 'firebase/auth'
@@ -65,15 +65,17 @@ export async function updateCharacter(
         const imgRef = ref(storage, `responses/${crypto.randomUUID()}`)
         await uploadBytes(imgRef, imgFile)
         const url = await getDownloadURL(imgRef)
-        responses.push({
-          type: 'image',
-          value: url,
-          scale: res.scale,
-          x: res.x,
-          y: res.y,
-        })
+        const item: ResponseItem = { type: 'image', value: url }
+        if (typeof res.scale === 'number') item.scale = res.scale
+        if (typeof res.x === 'number') item.x = res.x
+        if (typeof res.y === 'number') item.y = res.y
+        responses.push(item)
       } else {
-        responses.push(res)
+        const item: ResponseItem = { type: res.type, value: res.value }
+        if (typeof res.scale === 'number') item.scale = res.scale
+        if (typeof res.x === 'number') item.x = res.x
+        if (typeof res.y === 'number') item.y = res.y
+        responses.push(item)
       }
     }
     processedRules.push({
@@ -103,4 +105,11 @@ export async function updateCharacter(
   }
 
   await updateDoc(doc(db, 'characters', id), data);
+}
+
+export async function deleteCharacter(id: string) {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth)
+  }
+  await deleteDoc(doc(db, 'characters', id))
 }

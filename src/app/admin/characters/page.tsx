@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useCollection } from 'react-firebase-hooks/firestore'
 import { collection } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
-import { createCharacter } from './actions'
+import { createCharacter, deleteCharacter } from './actions'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
 import { CharacterDoc } from '@/types'
@@ -117,6 +117,21 @@ export default function CharactersPage() {
         <Link href={`/admin/characters/${row.id}`} className="text-blue-500 underline">
           編輯
         </Link>
+      ),
+    },
+    {
+      header: '',
+      accessor: (row) => (
+        <button
+          className="text-red-600 underline"
+          onClick={async () => {
+            if (confirm('確定要刪除這個角色嗎？')) {
+              await deleteCharacter(row.id)
+            }
+          }}
+        >
+          刪除
+        </button>
       ),
     },
   ]
