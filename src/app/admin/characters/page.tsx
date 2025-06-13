@@ -94,17 +94,18 @@ export default function CharactersPage() {
     {
       header: 'Avatar',
       accessor: (row) => (
-        <Image
-          src={row.avatarUrl || 'https://placehold.co/40x40.png'}
-          alt={row.name}
-          width={40}
-          height={40}
-          className="rounded-full object-cover w-10 h-10"
-          style={{
-            objectPosition: `${row.avatarX ?? 0}% ${row.avatarY ?? 0}%`,
-            transform: `scale(${row.avatarScale ?? 1})`,
-          }}
-        />
+        <div className="relative w-10 h-10 overflow-hidden rounded-full">
+          <Image
+            src={row.avatarUrl || 'https://placehold.co/40x40.png'}
+            alt={row.name}
+            fill
+            className="object-cover"
+            style={{
+              objectPosition: `${row.avatarX ?? 0}% ${row.avatarY ?? 0}%`,
+              transform: `scale(${row.avatarScale ?? 1})`,
+            }}
+          />
+        </div>
       ),
     },
     { header: 'Name', accessor: (row) => row.name },

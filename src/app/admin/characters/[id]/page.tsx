@@ -95,18 +95,21 @@ export default function EditCharacterPage() {
     <div className="p-6 flex flex-col gap-4 max-w-md">
       <h1 className="text-xl">編輯角色</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Image
-          src={file ? URL.createObjectURL(file) : data?.avatarUrl || 'https://placehold.co/80x80.png'}
-          alt={name}
-          width={80}
-          height={80}
-          className="rounded-full object-cover w-20 h-20 cursor-pointer"
-          style={{
-            objectPosition: `${avatarX}% ${avatarY}%`,
-            transform: `scale(${avatarScale})`,
-          }}
+        <div
+          className="relative w-20 h-20 overflow-hidden rounded-full cursor-pointer"
           onClick={() => setAvatarEditing(true)}
-        />
+        >
+          <Image
+            src={file ? URL.createObjectURL(file) : data?.avatarUrl || 'https://placehold.co/80x80.png'}
+            alt={name}
+            fill
+            className="object-cover"
+            style={{
+              objectPosition: `${avatarX}% ${avatarY}%`,
+              transform: `scale(${avatarScale})`,
+            }}
+          />
+        </div>
         <label className="flex flex-col gap-1">
           名稱
           <input
@@ -204,32 +207,32 @@ export default function EditCharacterPage() {
                     ) : (
                       <div className="flex items-center gap-2">
                         {typeof res.value === 'string' && res.value ? (
-                          <Image
-                            src={res.value}
-                            alt="response"
-                            width={40}
-                            height={40}
-                            className="object-cover w-10 h-10 rounded cursor-pointer"
-                            style={{
-                              objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
-                              transform: `scale(${res.scale ?? 1})`,
-                            }}
-                            onClick={() => setEditing({ rule: i, idx: j })}
-                          />
+                          <div className="relative w-10 h-10 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
+                            <Image
+                              src={res.value}
+                              alt="response"
+                              fill
+                              className="object-cover"
+                              style={{
+                                objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
+                                transform: `scale(${res.scale ?? 1})`,
+                              }}
+                            />
+                          </div>
                         ) : null}
                         {typeof res.value !== 'string' && res.value ? (
-                          <Image
-                            src={URL.createObjectURL(res.value as File)}
-                            alt="preview"
-                            width={40}
-                            height={40}
-                            className="object-cover w-10 h-10 rounded cursor-pointer"
-                            style={{
-                              objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
-                              transform: `scale(${res.scale ?? 1})`,
-                            }}
-                            onClick={() => setEditing({ rule: i, idx: j })}
-                          />
+                          <div className="relative w-10 h-10 overflow-hidden rounded cursor-pointer" onClick={() => setEditing({ rule: i, idx: j })}>
+                            <Image
+                              src={URL.createObjectURL(res.value as File)}
+                              alt="preview"
+                              fill
+                              className="object-cover"
+                              style={{
+                                objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
+                                transform: `scale(${res.scale ?? 1})`,
+                              }}
+                            />
+                          </div>
                         ) : null}
                         <input
                           type="file"
