@@ -9,6 +9,9 @@ export async function createCharacter(name: string, file: File) {
   if (!auth.currentUser) {
     await signInAnonymously(auth);
   }
+  if (file.size > 3 * 1024 * 1024) {
+    throw new Error('檔案大小不能超過 3MB');
+  }
   // 1. 上傳圖片
   const imgRef = ref(storage, `avatars/${crypto.randomUUID()}`);
   await uploadBytes(imgRef, file);
@@ -43,8 +46,12 @@ export async function updateCharacter(
     const responses: ResponseItem[] = []
     for (const res of rule.responses) {
       if (res.type === 'image' && typeof res.value !== 'string') {
+        const imgFile = res.value as unknown as File
+        if (imgFile.size > 3 * 1024 * 1024) {
+          throw new Error('檔案大小不能超過 3MB')
+        }
         const imgRef = ref(storage, `responses/${crypto.randomUUID()}`)
-        await uploadBytes(imgRef, res.value as unknown as File)
+        await uploadBytes(imgRef, imgFile)
         const url = await getDownloadURL(imgRef)
         responses.push({ type: 'image', value: url })
       } else {
@@ -60,6 +67,9 @@ export async function updateCharacter(
   }
 
   if (file) {
+    if (file.size > 3 * 1024 * 1024) {
+      throw new Error('檔案大小不能超過 3MB')
+    }
     const imgRef = ref(storage, `avatars/${crypto.randomUUID()}`);
     await uploadBytes(imgRef, file);
     const url = await getDownloadURL(imgRef);
