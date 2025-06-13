@@ -53,7 +53,13 @@ export async function updateCharacter(
         const imgRef = ref(storage, `responses/${crypto.randomUUID()}`)
         await uploadBytes(imgRef, imgFile)
         const url = await getDownloadURL(imgRef)
-        responses.push({ type: 'image', value: url })
+        responses.push({
+          type: 'image',
+          value: url,
+          scale: res.scale,
+          x: res.x,
+          y: res.y,
+        })
       } else {
         responses.push(res)
       }

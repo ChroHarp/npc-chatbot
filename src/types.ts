@@ -1,6 +1,9 @@
 export interface ResponseItem {
   type: 'text' | 'image'
   value: string | File
+  scale?: number
+  x?: number
+  y?: number
 }
 
 export interface Rule {

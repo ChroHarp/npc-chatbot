@@ -23,6 +23,20 @@ export default function EditCharacterPage() {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [editing, setEditing] = useState<{ rule: number; idx: number } | null>(null)
+
+  const editingItem =
+    editing && rules[editing.rule]?.responses[editing.idx]?.type === 'image'
+      ? rules[editing.rule].responses[editing.idx]
+      : null
+  const editingSrc = editingItem
+    ? typeof editingItem.value === 'string'
+      ? editingItem.value
+      : URL.createObjectURL(editingItem.value as File)
+    : ''
+  const editingScale = editingItem?.scale ?? 1
+  const editingX = editingItem?.x ?? 0
+  const editingY = editingItem?.y ?? 0
 
   useEffect(() => {
     const d = value?.data() as CharacterDoc | undefined
@@ -104,7 +118,7 @@ export default function EditCharacterPage() {
           {rules.map((rule, i) => (
             <div key={i} className="border p-2 rounded flex flex-col gap-2">
               <div>
-                <span className="font-medium">Keywords</span>
+                <span className="font-medium">觸發關鍵詞 keywords</span>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {rule.keywords.map((kw, kidx) => (
                     <span
@@ -148,6 +162,7 @@ export default function EditCharacterPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-2">
+                <span className="font-medium">回應內容 reply</span>
                 {rule.responses.map((res, j) => (
                   <div key={j} className="flex items-center gap-2">
                     {res.type === 'text' ? (
@@ -174,7 +189,12 @@ export default function EditCharacterPage() {
                             alt="response"
                             width={40}
                             height={40}
-                            className="object-cover w-10 h-10 rounded"
+                            className="object-cover w-10 h-10 rounded cursor-pointer"
+                            style={{
+                              objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
+                              transform: `scale(${res.scale ?? 1})`,
+                            }}
+                            onClick={() => setEditing({ rule: i, idx: j })}
                           />
                         ) : null}
                         {typeof res.value !== 'string' && res.value ? (
@@ -183,7 +203,12 @@ export default function EditCharacterPage() {
                             alt="preview"
                             width={40}
                             height={40}
-                            className="object-cover w-10 h-10 rounded"
+                            className="object-cover w-10 h-10 rounded cursor-pointer"
+                            style={{
+                              objectPosition: `${res.x ?? 0}% ${res.y ?? 0}%`,
+                              transform: `scale(${res.scale ?? 1})`,
+                            }}
+                            onClick={() => setEditing({ rule: i, idx: j })}
                           />
                         ) : null}
                         <input
@@ -274,6 +299,98 @@ export default function EditCharacterPage() {
           {loading ? '儲存中...' : '儲存'}
         </button>
       </form>
+      {editingItem ? (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded flex flex-col gap-2">
+            <div className="relative w-64 h-64 overflow-hidden">
+              <Image
+                src={editingSrc}
+                alt="edit"
+                fill
+                className="object-cover"
+                style={{
+                  objectPosition: `${editingX}% ${editingY}%`,
+                  transform: `scale(${editingScale})`,
+                }}
+              />
+            </div>
+            <label className="text-sm">
+              scale
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.1"
+                value={editingScale}
+                onChange={(e) => {
+                  if (!editing) return
+                  const v = Number(e.target.value)
+                  setRules((r) =>
+                    r.map((rr, ri) => {
+                      if (ri !== editing.rule) return rr
+                      const responses = rr.responses.map((rs, ci) =>
+                        ci === editing.idx ? { ...rs, scale: v } : rs,
+                      )
+                      return { ...rr, responses }
+                    }),
+                  )
+                }}
+              />
+            </label>
+            <label className="text-sm">
+              x
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                value={editingX}
+                onChange={(e) => {
+                  if (!editing) return
+                  const v = Number(e.target.value)
+                  setRules((r) =>
+                    r.map((rr, ri) => {
+                      if (ri !== editing.rule) return rr
+                      const responses = rr.responses.map((rs, ci) =>
+                        ci === editing.idx ? { ...rs, x: v } : rs,
+                      )
+                      return { ...rr, responses }
+                    }),
+                  )
+                }}
+              />
+            </label>
+            <label className="text-sm">
+              y
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                value={editingY}
+                onChange={(e) => {
+                  if (!editing) return
+                  const v = Number(e.target.value)
+                  setRules((r) =>
+                    r.map((rr, ri) => {
+                      if (ri !== editing.rule) return rr
+                      const responses = rr.responses.map((rs, ci) =>
+                        ci === editing.idx ? { ...rs, y: v } : rs,
+                      )
+                      return { ...rr, responses }
+                    }),
+                  )
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="px-3 py-1 border rounded"
+              onClick={() => setEditing(null)}
+            >
+              完成
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
