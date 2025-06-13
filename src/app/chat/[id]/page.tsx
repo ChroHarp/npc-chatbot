@@ -32,7 +32,7 @@ export default function CharacterChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col max-w-md mx-auto w-full">
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-white">
       <header className="p-4 border-b flex justify-between items-center">
         <h1 className="font-semibold">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-red-600" onClick={clear}>

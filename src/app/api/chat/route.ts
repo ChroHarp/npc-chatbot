@@ -22,27 +22,22 @@ export async function POST(req: Request) {
 
   const character = await getCharacter(convo.characterId)
   let responses = character.defaultResponses
-  let key = 'default'
   for (let i = 0; i < character.rules.length; i++) {
     const rule = character.rules[i]
     if (rule.keywords.some((k) => message.includes(k))) {
       responses = rule.responses
-      key = `rule${i}`
       break
     }
   }
-  const index = convo.counters[key] || 0
-  const resp = responses[index % responses.length]
-  convo.counters[key] = index + 1
 
-  const npcReply: ChatMessage = {
+  const npcReplies: ChatMessage[] = responses.map((resp) => ({
     id: crypto.randomUUID(),
     role: 'npc',
     type: resp.type === 'image' ? 'IMAGE' : 'TEXT',
     content: resp.value as string,
     avatarUrl: character.avatarUrl,
     timestamp: new Date().toISOString(),
-  }
-  convo.messages.push(npcReply)
-  return NextResponse.json({ messages: [npcReply] })
+  }))
+  convo.messages.push(...npcReplies)
+  return NextResponse.json({ messages: npcReplies })
 }

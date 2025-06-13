@@ -22,7 +22,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col max-w-md mx-auto w-full">
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-white">
       <header className="p-4 border-b flex justify-between items-center">
         <h1 className="font-semibold">NPC Chat</h1>
         <button
