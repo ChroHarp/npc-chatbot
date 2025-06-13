@@ -114,6 +114,14 @@ export default function CharactersPage() {
     {
       header: '',
       accessor: (row) => (
+        <Link href={`/chat/${row.id}`} className="text-blue-500 underline">
+          聊天
+        </Link>
+      ),
+    },
+    {
+      header: '',
+      accessor: (row) => (
         <Link href={`/admin/characters/${row.id}`} className="text-blue-500 underline">
           編輯
         </Link>
