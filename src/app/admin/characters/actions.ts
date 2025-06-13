@@ -78,11 +78,12 @@ export async function updateCharacter(
         responses.push(item)
       }
     }
-    processedRules.push({
+    const newRule: Rule = {
       keywords: rule.keywords,
       responses,
-      type: rule.type,
-    })
+    }
+    if (rule.type) newRule.type = rule.type
+    processedRules.push(newRule)
   }
 
   const data: Partial<CharacterDoc> = {
