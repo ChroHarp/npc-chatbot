@@ -14,5 +14,8 @@ export interface Rule {
 export interface CharacterDoc {
   name: string
   avatarUrl: string
+  avatarScale?: number
+  avatarX?: number
+  avatarY?: number
   rules: Rule[]
 }

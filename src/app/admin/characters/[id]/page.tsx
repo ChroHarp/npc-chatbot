@@ -21,9 +21,13 @@ export default function EditCharacterPage() {
   const [rules, setRules] = useState<Rule[]>([])
   const [keywordInputs, setKeywordInputs] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)
+  const [avatarScale, setAvatarScale] = useState(1)
+  const [avatarX, setAvatarX] = useState(0)
+  const [avatarY, setAvatarY] = useState(0)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [editing, setEditing] = useState<{ rule: number; idx: number } | null>(null)
+  const [avatarEditing, setAvatarEditing] = useState(false)
 
   const editingItem =
     editing && rules[editing.rule]?.responses[editing.idx]?.type === 'image'
@@ -42,6 +46,9 @@ export default function EditCharacterPage() {
     const d = value?.data() as CharacterDoc | undefined
     if (d) {
       setName(d.name)
+      setAvatarScale(d.avatarScale ?? 1)
+      setAvatarX(d.avatarX ?? 0)
+      setAvatarY(d.avatarY ?? 0)
       const r = d.rules || [{ keywords: [], responses: [] }]
       setRules(r)
       setKeywordInputs(r.map(() => ''))
@@ -67,7 +74,15 @@ export default function EditCharacterPage() {
     }
     setLoading(true)
     try {
-      await updateCharacter(id, name, rules, file ?? undefined)
+      await updateCharacter(
+        id,
+        name,
+        rules,
+        file ?? undefined,
+        avatarScale,
+        avatarX,
+        avatarY,
+      )
       router.push('/admin/characters')
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
@@ -85,7 +100,12 @@ export default function EditCharacterPage() {
           alt={name}
           width={80}
           height={80}
-          className="rounded-full object-cover w-20 h-20"
+          className="rounded-full object-cover w-20 h-20 cursor-pointer"
+          style={{
+            objectPosition: `${avatarX}% ${avatarY}%`,
+            transform: `scale(${avatarScale})`,
+          }}
+          onClick={() => setAvatarEditing(true)}
         />
         <label className="flex flex-col gap-1">
           名稱
@@ -299,6 +319,62 @@ export default function EditCharacterPage() {
           {loading ? '儲存中...' : '儲存'}
         </button>
       </form>
+      {avatarEditing ? (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded flex flex-col gap-2">
+            <div className="relative w-64 h-64 overflow-hidden">
+              <Image
+                src={file ? URL.createObjectURL(file) : data?.avatarUrl || ''}
+                alt="avatar"
+                fill
+                className="object-cover"
+                style={{
+                  objectPosition: `${avatarX}% ${avatarY}%`,
+                  transform: `scale(${avatarScale})`,
+                }}
+              />
+            </div>
+            <label className="text-sm">
+              scale
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.1"
+                value={avatarScale}
+                onChange={(e) => setAvatarScale(Number(e.target.value))}
+              />
+            </label>
+            <label className="text-sm">
+              x
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                value={avatarX}
+                onChange={(e) => setAvatarX(Number(e.target.value))}
+              />
+            </label>
+            <label className="text-sm">
+              y
+              <input
+                type="range"
+                min="-100"
+                max="100"
+                value={avatarY}
+                onChange={(e) => setAvatarY(Number(e.target.value))}
+              />
+            </label>
+            <button
+              type="button"
+              className="px-3 py-1 border rounded"
+              onClick={() => setAvatarEditing(false)}
+            >
+              完成
+            </button>
+          </div>
+        </div>
+      ) : null}
       {editingItem ? (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded flex flex-col gap-2">

@@ -9,7 +9,7 @@ import { db } from '@/libs/firebase'
 import { createCharacter } from './actions'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
-import { Rule } from '@/types'
+import { CharacterDoc } from '@/types'
 
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024
@@ -87,7 +87,7 @@ export default function CharactersPage() {
   const characters =
     value?.docs.map((doc) => ({
       id: doc.id,
-      ...(doc.data() as { name: string; avatarUrl: string; rules: Rule[] })
+      ...(doc.data() as CharacterDoc)
     })) || []
 
   const columns: Column<(typeof characters)[number]>[] = [
@@ -100,6 +100,10 @@ export default function CharactersPage() {
           width={40}
           height={40}
           className="rounded-full object-cover w-10 h-10"
+          style={{
+            objectPosition: `${row.avatarX ?? 0}% ${row.avatarY ?? 0}%`,
+            transform: `scale(${row.avatarScale ?? 1})`,
+          }}
         />
       ),
     },

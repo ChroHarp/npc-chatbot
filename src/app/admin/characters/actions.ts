@@ -21,6 +21,9 @@ export async function createCharacter(name: string, file: File) {
   const docData: CharacterDoc = {
     name,
     avatarUrl: url,
+    avatarScale: 1,
+    avatarX: 0,
+    avatarY: 0,
     rules: [
       {
         keywords: [],
@@ -36,6 +39,9 @@ export async function updateCharacter(
   name: string,
   rules: Rule[],
   file?: File,
+  avatarScale?: number,
+  avatarX?: number,
+  avatarY?: number,
 ) {
   if (!auth.currentUser) {
     await signInAnonymously(auth);
@@ -71,6 +77,10 @@ export async function updateCharacter(
     name,
     rules: processedRules,
   }
+
+  if (typeof avatarScale === 'number') data.avatarScale = avatarScale
+  if (typeof avatarX === 'number') data.avatarX = avatarX
+  if (typeof avatarY === 'number') data.avatarY = avatarY
 
   if (file) {
     if (file.size > 3 * 1024 * 1024) {
