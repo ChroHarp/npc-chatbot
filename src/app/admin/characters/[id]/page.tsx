@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { doc } from 'firebase/firestore'
@@ -145,9 +147,27 @@ export default function EditCharacterPage() {
                   {rule.keywords.map((kw, kidx) => (
                     <span
                       key={kidx}
-                      className="px-2 py-1 text-sm bg-gray-200 rounded"
+                      className="px-2 py-1 text-sm bg-gray-200 rounded flex items-center gap-1"
                     >
                       {kw}
+                      <button
+                        type="button"
+                        className="text-xs text-red-600"
+                        onClick={() =>
+                          setRules((r) =>
+                            r.map((rr, ridx) =>
+                              ridx === i
+                                ? {
+                                    ...rr,
+                                    keywords: rr.keywords.filter((_, idx2) => idx2 !== kidx),
+                                  }
+                                : rr,
+                            ),
+                          )
+                        }
+                      >
+                        ×
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -315,9 +335,18 @@ export default function EditCharacterPage() {
             新增回應規則
           </button>
         </div>
-        <button type="submit" disabled={loading} className="self-start px-4 py-2 bg-black text-white rounded disabled:opacity-50">
-          {loading ? '儲存中...' : '儲存'}
-        </button>
+        <div className="flex gap-2">
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-black text-white rounded disabled:opacity-50">
+            {loading ? '儲存中...' : '儲存'}
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 border rounded"
+            onClick={() => router.push('/admin/characters')}
+          >
+            取消
+          </button>
+        </div>
       </form>
       {avatarEditing ? (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
