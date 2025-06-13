@@ -1,5 +1,6 @@
 'use client'
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { doc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
@@ -39,6 +40,23 @@ export default function CharacterChatPage() {
           清除
         </button>
       </header>
+      {data?.avatarUrl && (
+        <div className="flex justify-center p-4">
+          <div className="relative w-4/5 aspect-square overflow-hidden rounded-lg">
+            <Image
+              src={data.avatarUrl}
+              alt={data.name}
+              fill
+              className="object-cover"
+              style={{
+                transform: `translate(${data.avatarX ?? 0}%, ${data.avatarY ?? 0}%) scale(${
+                  data.avatarScale ?? 1
+                })`,
+              }}
+            />
+          </div>
+        </div>
+      )}
       <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
