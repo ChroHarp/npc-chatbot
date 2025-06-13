@@ -12,18 +12,31 @@ import { Drawer } from '@/components/drawer'
 import { Rule } from '@/types'
 
 
+const MAX_FILE_SIZE = 3 * 1024 * 1024
+
 function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
   const [name, setName] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError('')
     if (!file) return
+    if (file.size > MAX_FILE_SIZE) {
+      setError('檔案大小不能超過 3MB')
+      return
+    }
     setLoading(true)
-    await createCharacter(name, file)
-    setLoading(false)
-    onCreated()
+    try {
+      await createCharacter(name, file)
+      onCreated()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,8 +52,23 @@ function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
       </label>
       <label className="flex flex-col gap-1">
         Avatar
-        <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null
+            if (f && f.size > MAX_FILE_SIZE) {
+              alert('檔案大小不能超過 3MB')
+              e.target.value = ''
+              setFile(null)
+              return
+            }
+            setFile(f)
+          }}
+          required
+        />
       </label>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
       <button
         type="submit"
         disabled={loading}

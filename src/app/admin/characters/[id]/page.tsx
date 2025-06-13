@@ -9,6 +9,8 @@ import { db } from '@/libs/firebase'
 import { updateCharacter } from '../actions'
 import { Rule, CharacterDoc } from '@/types'
 
+const MAX_FILE_SIZE = 3 * 1024 * 1024
+
 export default function EditCharacterPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -19,6 +21,7 @@ export default function EditCharacterPage() {
   const [rules, setRules] = useState<Rule[]>([])
   const [keywordInputs, setKeywordInputs] = useState<string[]>([])
   const [file, setFile] = useState<File | null>(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -43,10 +46,20 @@ export default function EditCharacterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError('')
+    if (file && file.size > MAX_FILE_SIZE) {
+      setError('檔案大小不能超過 3MB')
+      return
+    }
     setLoading(true)
-    await updateCharacter(id, name, rules, file ?? undefined)
-    setLoading(false)
-    router.push('/admin/characters')
+    try {
+      await updateCharacter(id, name, rules, file ?? undefined)
+      router.push('/admin/characters')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -71,8 +84,22 @@ export default function EditCharacterPage() {
         </label>
         <label className="flex flex-col gap-1">
           Avatar
-          <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null
+              if (f && f.size > MAX_FILE_SIZE) {
+                alert('檔案大小不能超過 3MB')
+                e.target.value = ''
+                setFile(null)
+                return
+              }
+              setFile(f)
+            }}
+          />
         </label>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex flex-col gap-4">
           {rules.map((rule, i) => (
             <div key={i} className="border p-2 rounded flex flex-col gap-2">
@@ -165,6 +192,11 @@ export default function EditCharacterPage() {
                           onChange={(e) => {
                             const file = e.target.files?.[0]
                             if (!file) return
+                            if (file.size > MAX_FILE_SIZE) {
+                              alert('檔案大小不能超過 3MB')
+                              e.target.value = ''
+                              return
+                            }
                             setRules((r) =>
                               r.map((rr, idx) => {
                                 if (idx !== i) return rr
