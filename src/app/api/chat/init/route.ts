@@ -8,16 +8,14 @@ export async function GET(req: Request) {
   const characterId = searchParams.get('characterId') || 'default'
   const character = await getCharacter(characterId)
   const conversationId = crypto.randomUUID()
-  const messages: ChatMessage[] = [
-    {
-      id: crypto.randomUUID(),
-      role: 'npc',
-      type: 'TEXT',
-      content: character.greeting,
-      avatarUrl: character.avatarUrl,
-      timestamp: new Date().toISOString(),
-    },
-  ]
-  conversations.set(conversationId, { characterId, messages })
+  const messages: ChatMessage[] = character.greeting.map((g) => ({
+    id: crypto.randomUUID(),
+    role: 'npc',
+    type: g.type === 'image' ? 'IMAGE' : 'TEXT',
+    content: g.value as string,
+    avatarUrl: character.avatarUrl,
+    timestamp: new Date().toISOString(),
+  }))
+  conversations.set(conversationId, { characterId, messages, counters: {} })
   return NextResponse.json({ conversationId, messages })
 }

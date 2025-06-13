@@ -16,6 +16,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
             width={200}
             height={200}
             className="rounded-lg"
+            unoptimized
           />
         )
       case 'YOUTUBE':

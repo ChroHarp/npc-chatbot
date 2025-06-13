@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { ChatMessage } from '@/types/chat'
 
 interface InitResponse {
@@ -22,9 +22,9 @@ export function useChat(characterId: string) {
   const [error, setError] = useState<string | null>(null)
   const storageKey = `conversationId-${characterId}`
 
-  useEffect(() => {
-    const id = localStorage.getItem(storageKey)
-    async function fetchInit() {
+  const init = useCallback(
+    async (force?: boolean) => {
+      const id = force ? null : localStorage.getItem(storageKey)
       try {
         setLoading(true)
         setError(null)
@@ -47,9 +47,13 @@ export function useChat(characterId: string) {
       } finally {
         setLoading(false)
       }
-    }
-    fetchInit()
-  }, [characterId, storageKey])
+    },
+    [characterId, storageKey],
+  )
+
+  useEffect(() => {
+    init()
+  }, [init])
 
   async function send(text: string) {
     if (!conversationId) return
@@ -83,6 +87,7 @@ export function useChat(characterId: string) {
     localStorage.removeItem(storageKey)
     setConversationId(null)
     setMessages([])
+    init(true)
   }
 
   return { messages, send, clear, loading, error }

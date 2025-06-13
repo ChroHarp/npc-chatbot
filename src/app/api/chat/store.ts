@@ -3,6 +3,7 @@ import type { ChatMessage } from '@/types/chat'
 export interface Conversation {
   characterId: string
   messages: ChatMessage[]
+  counters: Record<string, number>
 }
 
 interface GlobalStore {

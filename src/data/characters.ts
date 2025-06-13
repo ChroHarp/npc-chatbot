@@ -1,23 +1,30 @@
+import type { ResponseItem, CharacterDoc } from '@/types'
+
+export interface CharacterRule {
+  keywords: string[]
+  responses: ResponseItem[]
+}
+
 export interface CharacterData {
   id: string
   avatarUrl?: string
-  greeting: string
-  rules: { keywords: string[]; response: string }[]
-  defaultResponse: string
+  greeting: ResponseItem[]
+  rules: CharacterRule[]
+  defaultResponses: ResponseItem[]
 }
-
-import type { CharacterDoc } from '@/types'
 
 export const characters: Record<string, CharacterData> = {
   default: {
     id: 'default',
     avatarUrl: '/next.svg',
-    greeting: '你好，我是預設角色',
+    greeting: [{ type: 'text', value: '你好，我是預設角色' }],
     rules: [
-      { keywords: ['你好', 'hi'], response: '很高興見到你！' },
-      { keywords: ['再見', 'bye'], response: '下次見！' },
+      { keywords: ['你好', 'hi'], responses: [{ type: 'text', value: '很高興見到你！' }] },
+      { keywords: ['再見', 'bye'], responses: [{ type: 'text', value: '下次見！' }] },
     ],
-    defaultResponse: '我還在學習，聽不太懂你的意思。',
+    defaultResponses: [
+      { type: 'text', value: '我還在學習，聽不太懂你的意思。' },
+    ],
   },
 }
 
@@ -54,26 +61,34 @@ export async function getCharacter(id: string): Promise<CharacterData> {
       const others = (data.rules || []).filter(
         (r) => r.type !== 'firstLogin' && r.type !== 'default',
       )
-      const greetValue = first?.responses?.[0]?.value
-      const defValue = def?.responses?.[0]?.value
+
+      const greeting: ResponseItem[] = first?.responses?.length
+        ? (first.responses.map((res) => ({
+            type: res.type as 'text' | 'image',
+            value: res.value as string,
+          })) as ResponseItem[])
+        : [{ type: 'text', value: `你好，我是${data.name || 'NPC'}` }]
+
+      const defaultResponses: ResponseItem[] = def?.responses?.length
+        ? (def.responses.map((res) => ({
+            type: res.type as 'text' | 'image',
+            value: res.value as string,
+          })) as ResponseItem[])
+        : characters.default.defaultResponses
+
       return {
         id,
         avatarUrl: data.avatarUrl || characters.default.avatarUrl,
-        greeting:
-          typeof greetValue === 'string'
-            ? greetValue
-            : `你好，我是${data.name || 'NPC'}`,
+        greeting,
         rules: others.map((r) => ({
           keywords: r.keywords || [],
-          response:
-            typeof r.responses?.[0]?.value === 'string'
-              ? (r.responses[0].value as string)
-              : '',
+          responses:
+            (r.responses?.map((res) => ({
+              type: res.type as 'text' | 'image',
+              value: res.value as string,
+            })) as ResponseItem[]) || [],
         })),
-        defaultResponse:
-          typeof defValue === 'string'
-            ? defValue
-            : characters.default.defaultResponse,
+        defaultResponses,
       }
     }
   } catch (err) {
