@@ -38,13 +38,18 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 mb-3`}>
       {!isUser && message.avatarUrl && (
-        <Image
-          src={message.avatarUrl}
-          alt="avatar"
-          width={32}
-          height={32}
-          className="rounded-full self-end"
-        />
+        <div className="relative w-8 h-8 overflow-hidden rounded-full self-end flex-shrink-0">
+          <Image
+            src={message.avatarUrl}
+            alt="avatar"
+            fill
+            className="object-cover"
+            style={{
+              transform: `translate(${message.avatarX ?? 0}%, ${message.avatarY ?? 0}%) scale(${message.avatarScale ?? 1})`,
+            }}
+            unoptimized
+          />
+        </div>
       )}
       <div className="max-w-[70%]">
         <div

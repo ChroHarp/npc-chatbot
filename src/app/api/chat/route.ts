@@ -36,6 +36,9 @@ export async function POST(req: Request) {
     type: resp.type === 'image' ? 'IMAGE' : 'TEXT',
     content: resp.value as string,
     avatarUrl: character.avatarUrl,
+    avatarX: character.avatarX,
+    avatarY: character.avatarY,
+    avatarScale: character.avatarScale,
     timestamp: new Date().toISOString(),
   }))
   convo.messages.push(...npcReplies)

@@ -6,4 +6,7 @@ export interface ChatMessage {
   content: string
   timestamp?: string
   avatarUrl?: string
+  avatarX?: number
+  avatarY?: number
+  avatarScale?: number
 }

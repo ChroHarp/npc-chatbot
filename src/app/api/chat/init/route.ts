@@ -14,6 +14,9 @@ export async function GET(req: Request) {
     type: g.type === 'image' ? 'IMAGE' : 'TEXT',
     content: g.value as string,
     avatarUrl: character.avatarUrl,
+    avatarX: character.avatarX,
+    avatarY: character.avatarY,
+    avatarScale: character.avatarScale,
     timestamp: new Date().toISOString(),
   }))
   conversations.set(conversationId, { characterId, messages, counters: {} })

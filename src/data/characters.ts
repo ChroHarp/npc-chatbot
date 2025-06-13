@@ -8,6 +8,9 @@ export interface CharacterRule {
 export interface CharacterData {
   id: string
   avatarUrl?: string
+  avatarX?: number
+  avatarY?: number
+  avatarScale?: number
   greeting: ResponseItem[]
   rules: CharacterRule[]
   defaultResponses: ResponseItem[]
@@ -17,6 +20,9 @@ export const characters: Record<string, CharacterData> = {
   default: {
     id: 'default',
     avatarUrl: '/next.svg',
+    avatarX: 0,
+    avatarY: 0,
+    avatarScale: 1,
     greeting: [{ type: 'text', value: '你好，我是預設角色' }],
     rules: [
       { keywords: ['你好', 'hi'], responses: [{ type: 'text', value: '很高興見到你！' }] },
@@ -79,6 +85,9 @@ export async function getCharacter(id: string): Promise<CharacterData> {
       return {
         id,
         avatarUrl: data.avatarUrl || characters.default.avatarUrl,
+        avatarX: typeof data.avatarX === 'number' ? data.avatarX : characters.default.avatarX,
+        avatarY: typeof data.avatarY === 'number' ? data.avatarY : characters.default.avatarY,
+        avatarScale: typeof data.avatarScale === 'number' ? data.avatarScale : characters.default.avatarScale,
         greeting,
         rules: others.map((r) => ({
           keywords: r.keywords || [],
