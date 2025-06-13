@@ -24,14 +24,14 @@ export default function CharacterChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col max-w-md mx-auto w-full">
       <header className="p-4 border-b flex justify-between items-center">
         <h1 className="font-semibold">NPC Chat</h1>
         <button className="text-sm text-red-600" onClick={clear}>
           清除
         </button>
       </header>
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
         ))}

@@ -36,9 +36,9 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 mb-3`}>
-      {!isUser && (
+      {!isUser && message.avatarUrl && (
         <Image
-          src={message.avatarUrl || '/next.svg'}
+          src={message.avatarUrl}
           alt="avatar"
           width={32}
           height={32}
