@@ -26,6 +26,11 @@ export default function EditCharacterPage() {
   const [avatarScale, setAvatarScale] = useState(1)
   const [avatarX, setAvatarX] = useState(0)
   const [avatarY, setAvatarY] = useState(0)
+  const [dragRule, setDragRule] = useState<number | null>(null)
+  const [dragResponse, setDragResponse] = useState<{
+    rule: number
+    idx: number
+  } | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [avatarEditing, setAvatarEditing] = useState(false)
@@ -134,7 +139,27 @@ export default function EditCharacterPage() {
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex flex-col gap-4">
           {rules.map((rule, i) => (
-            <div key={i} className="border p-2 rounded flex flex-col gap-2">
+            <div
+              key={i}
+              className="border p-2 rounded flex flex-col gap-2"
+              draggable={i > 1 && !rule.type}
+              onDragStart={() => setDragRule(i)}
+              onDragOver={(e) => {
+                if (dragRule !== null) e.preventDefault()
+              }}
+              onDrop={() => {
+                if (dragRule === null || dragRule === i || i < 2) return
+                if (dragRule < 2) return
+                const arr = rules.slice(2)
+                const from = dragRule - 2
+                const to = i - 2
+                arr.splice(to, 0, arr.splice(from, 1)[0])
+                setRules([rules[0], rules[1], ...arr])
+              }}
+            >
+              {i > 1 && !rule.type ? (
+                <span className="text-xl cursor-move select-none">⋮⋮</span>
+              ) : null}
               <div>
                 <span className="font-medium">觸發關鍵詞 keywords</span>
                 {rule.type === 'firstLogin' ? (
@@ -212,7 +237,30 @@ export default function EditCharacterPage() {
               <div className="flex flex-col gap-2">
                 <span className="font-medium">回應內容 reply</span>
                 {rule.responses.map((res, j) => (
-                  <div key={j} className="flex items-center gap-2">
+                  <div
+                    key={j}
+                    className="flex items-center gap-2"
+                    draggable
+                    onDragStart={() => setDragResponse({ rule: i, idx: j })}
+                    onDragOver={(e) => {
+                      if (dragResponse) e.preventDefault()
+                    }}
+                    onDrop={() => {
+                      if (!dragResponse || dragResponse.rule !== i) return
+                      const from = dragResponse.idx
+                      const to = j
+                      if (from === to) return
+                      setRules((r) =>
+                        r.map((rr, idx) => {
+                          if (idx !== i) return rr
+                          const arr = [...rr.responses]
+                          arr.splice(to, 0, arr.splice(from, 1)[0])
+                          return { ...rr, responses: arr }
+                        })
+                      )
+                    }}
+                  >
+                    <span className="cursor-move select-none">⋮⋮</span>
                     {res.type === 'text' ? (
                       <input
                         className="border rounded px-2 py-1 flex-1"
