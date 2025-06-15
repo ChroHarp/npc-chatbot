@@ -36,8 +36,8 @@ export default function CharacterChatPage() {
     <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-teal-50 dark:bg-neutral-950">
       <header className="p-4 border-b flex justify-between items-center bg-teal-600 text-white">
         <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
-        <button className="text-sm text-red-600" onClick={clear}>
-          清除
+        <button className="text-sm text-white" onClick={clear}>
+          重設對話
         </button>
       </header>
       {data?.avatarUrl && (

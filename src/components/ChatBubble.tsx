@@ -32,7 +32,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
-                    className="absolute top-2 right-2 text-white text-2xl"
+                    className="absolute top-2 right-2 text-white text-2xl z-10"
                     onClick={() => setShowImage(false)}
                   >
                     ×
