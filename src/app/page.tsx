@@ -1,63 +1,58 @@
-'use client'
-import { useRef, useState } from 'react'
-import { ChatBubble } from '@/components/ChatBubble'
-import type { ChatMessage } from '@/types/chat'
-import { useChat } from '@/hooks/useChat'
+"use client"
 
-export default function ChatPage() {
-  const characterId = 'default'
-  const { messages, send, clear, loading, error } = useChat(characterId)
-  const [text, setText] = useState('')
-  const listRef = useRef<HTMLDivElement | null>(null)
+import Image from "next/image";
+import Link from "next/link";
+import { collection } from "firebase/firestore";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { db } from "@/libs/firebase";
+import type { CharacterDoc } from "@/types";
+import { characters as defaultCharacters } from "@/data/characters";
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!text.trim()) return
-    send(text.trim())
-    setText('')
-    ;(document.activeElement as HTMLElement | null)?.blur()
-    setTimeout(() => {
-      listRef.current?.scrollTo(0, listRef.current.scrollHeight)
-    }, 50)
-  }
+export default function HomePage() {
+  const [value] = useCollection(collection(db, "characters"));
+
+  const characters = [
+    {
+      id: "default",
+      name: "預設角色",
+      avatarUrl: defaultCharacters.default.avatarUrl,
+      avatarX: defaultCharacters.default.avatarX,
+      avatarY: defaultCharacters.default.avatarY,
+      avatarScale: defaultCharacters.default.avatarScale,
+    },
+    ...(value?.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as CharacterDoc),
+    })) || []),
+  ];
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-white">
-      <header className="p-4 border-b flex justify-between items-center">
-        <h1 className="font-semibold">NPC Chat</h1>
-        <button
-          className="text-sm text-red-600"
-          onClick={clear}
-        >
-          清除
-        </button>
-      </header>
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
-        {messages.map((m: ChatMessage) => (
-          <ChatBubble key={m.id} message={m} />
+    <div className="p-6 max-w-md mx-auto flex flex-col gap-4">
+      <h1 className="text-xl font-semibold">選擇角色</h1>
+      <div className="flex flex-col gap-3">
+        {characters.map((ch) => (
+          <Link
+            key={ch.id}
+            href={`/chat/${ch.id}`}
+            className="flex items-center gap-4 p-3 border rounded hover:bg-gray-50"
+          >
+            <div className="relative w-12 h-12 overflow-hidden rounded-full flex-shrink-0">
+              <Image
+                src={ch.avatarUrl || "/next.svg"}
+                alt={ch.name}
+                fill
+                className="object-cover"
+                style={{
+                  transform: `translate(${ch.avatarX ?? 0}%, ${ch.avatarY ?? 0}%) scale(${
+                    ch.avatarScale ?? 1
+                  })`,
+                }}
+              />
+            </div>
+            <span>{ch.name}</span>
+          </Link>
         ))}
-        {loading && <p className="text-center text-sm text-gray-500">載入中...</p>}
-        {error && (
-          <p className="text-center text-sm text-red-600">{error}</p>
-        )}
       </div>
-      <form
-        onSubmit={handleSubmit}
-        className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
-      >
-        <textarea
-          className="flex-1 border rounded p-2 resize-none h-10"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-          disabled={!text.trim()}
-        >
-          送出
-        </button>
-      </form>
     </div>
-  )
+  );
 }
