@@ -33,8 +33,8 @@ export default function CharacterChatPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-white">
-      <header className="p-4 border-b flex justify-between items-center">
+    <div className="chat-container">
+      <header className="chat-header">
         <h1 className="font-semibold">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-red-600" onClick={clear}>
           清除
@@ -57,7 +57,7 @@ export default function CharacterChatPage() {
           </div>
         </div>
       )}
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
+      <div ref={listRef} className="chat-messages">
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
         ))}
@@ -66,16 +66,16 @@ export default function CharacterChatPage() {
       </div>
       <form
         onSubmit={handleSubmit}
-        className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
+        className="chat-input"
       >
         <textarea
-          className="flex-1 border rounded p-2 resize-none h-10"
+          className="chat-textarea"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          className="send-button disabled:opacity-50"
           disabled={!text.trim()}
         >
           送出

@@ -36,9 +36,9 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 mb-3`}>
+    <div className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--npc'}`}> 
       {!isUser && message.avatarUrl && (
-        <div className="relative w-8 h-8 overflow-hidden rounded-full self-end flex-shrink-0">
+        <div className="chat-bubble__avatar">
           <Image
             src={message.avatarUrl}
             alt="avatar"
@@ -52,15 +52,11 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
         </div>
       )}
       <div className="max-w-[70%]">
-        <div
-          className={`px-3 py-2 rounded-lg text-sm break-words ${
-            isUser ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-neutral-800'
-          }`}
-        >
+        <div className="chat-bubble__content">
           {renderContent()}
         </div>
         {message.timestamp && (
-          <time className="block mt-1 text-xs text-gray-500 text-right">
+          <time className="chat-bubble__time">
             {new Date(message.timestamp).toLocaleTimeString()}
           </time>
         )}
