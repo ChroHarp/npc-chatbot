@@ -33,9 +33,9 @@ export default function CharacterChatPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-white">
-      <header className="p-4 border-b flex justify-between items-center">
-        <h1 className="font-semibold">{data?.name || 'NPC Chat'}</h1>
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-teal-50 dark:bg-neutral-950">
+      <header className="p-4 border-b flex justify-between items-center bg-teal-600 text-white">
+        <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-red-600" onClick={clear}>
           清除
         </button>
@@ -69,13 +69,13 @@ export default function CharacterChatPage() {
         className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
       >
         <textarea
-          className="flex-1 border rounded p-2 resize-none h-10"
+          className="chat-textarea"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          className="send-button"
           disabled={!text.trim()}
         >
           送出

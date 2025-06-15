@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #e0f7f7;
+  --foreground: #00332e;
 }
 
 @theme inline {
@@ -14,8 +14,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #001818;
+    --foreground: #e0f7f7;
   }
 }
 
@@ -23,6 +23,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
 }
 
 /* Custom styles used on the chat page */
@@ -31,5 +32,5 @@ body {
 }
 
 .send-button {
-  @apply px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50;
+  @apply px-4 py-2 bg-teal-600 text-white rounded disabled:opacity-50;
 }
