@@ -22,9 +22,10 @@ export async function POST(req: Request) {
 
   const character = await getCharacter(convo.characterId)
   let responses = character.defaultResponses
+  const lowerMsg = message.toLowerCase()
   for (let i = 0; i < character.rules.length; i++) {
     const rule = character.rules[i]
-    if (rule.keywords.some((k) => message.includes(k))) {
+    if (rule.keywords.some((k) => lowerMsg.includes(k.toLowerCase()))) {
       responses = rule.responses
       break
     }
