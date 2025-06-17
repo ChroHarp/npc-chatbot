@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { doc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
@@ -31,6 +31,9 @@ export default function EditCharacterPage() {
     rule: number
     idx: number
   } | null>(null)
+  const [dragStartX, setDragStartX] = useState<number | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [imageTargetRule, setImageTargetRule] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [avatarEditing, setAvatarEditing] = useState(false)
@@ -241,7 +244,10 @@ export default function EditCharacterPage() {
                     key={j}
                     className="flex items-center gap-2"
                     draggable
-                    onDragStart={() => setDragResponse({ rule: i, idx: j })}
+                    onDragStart={(e) => {
+                      setDragResponse({ rule: i, idx: j })
+                      setDragStartX(e.clientX)
+                    }}
                     onDragOver={(e) => {
                       if (dragResponse) e.preventDefault()
                     }}
@@ -258,6 +264,37 @@ export default function EditCharacterPage() {
                           return { ...rr, responses: arr }
                         })
                       )
+                      setDragResponse(null)
+                      setDragStartX(null)
+                    }}
+                    onDragEnd={(e) => {
+                      if (
+                        dragResponse &&
+                        dragResponse.rule === i &&
+                        dragResponse.idx === j
+                      ) {
+                        if (e.dataTransfer?.dropEffect === 'none') {
+                          if (
+                            dragStartX !== null &&
+                            Math.abs(e.clientX - dragStartX) > 30
+                          ) {
+                            if (confirm('確定要刪除此段回應嗎？')) {
+                              setRules((r) =>
+                                r.map((rr, idx) =>
+                                  idx === i
+                                    ? {
+                                        ...rr,
+                                        responses: rr.responses.filter((_, k) => k !== j),
+                                      }
+                                    : rr,
+                                ),
+                              )
+                            }
+                          }
+                        }
+                      }
+                      setDragResponse(null)
+                      setDragStartX(null)
                     }}
                   >
                     <span className="cursor-move select-none">⋮⋮</span>
@@ -342,15 +379,10 @@ export default function EditCharacterPage() {
                   <button
                     type="button"
                     className="px-2 py-1 text-sm border rounded"
-                    onClick={() =>
-                      setRules((r) =>
-                        r.map((rr, idx) =>
-                          idx === i
-                            ? { ...rr, responses: [...rr.responses, { type: 'image', value: '' }] }
-                            : rr,
-                        ),
-                      )
-                    }
+                    onClick={() => {
+                      setImageTargetRule(i)
+                      fileInputRef.current?.click()
+                    }}
                   >
                     Add Image
                   </button>
@@ -451,6 +483,32 @@ export default function EditCharacterPage() {
           </div>
         </div>
       ) : null}
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (!f) return
+          if (f.size > MAX_FILE_SIZE) {
+            alert('檔案大小不能超過 3MB')
+            e.target.value = ''
+            return
+          }
+          if (imageTargetRule !== null) {
+            setRules((r) =>
+              r.map((rr, idx) =>
+                idx === imageTargetRule
+                  ? { ...rr, responses: [...rr.responses, { type: 'image', value: f }] }
+                  : rr,
+              ),
+            )
+          }
+          setImageTargetRule(null)
+          e.target.value = ''
+        }}
+      />
     </div>
   )
 }

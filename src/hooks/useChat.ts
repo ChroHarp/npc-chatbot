@@ -22,6 +22,15 @@ export function useChat(characterId: string) {
   const [error, setError] = useState<string | null>(null)
   const storageKey = `conversationId-${characterId}`
 
+  async function appendMessagesSequentially(msgs: ChatMessage[]) {
+    for (let i = 0; i < msgs.length; i++) {
+      setMessages((prev) => [...prev, msgs[i]])
+      if (i < msgs.length - 1) {
+        await new Promise((res) => setTimeout(res, 1000))
+      }
+    }
+  }
+
   const init = useCallback(
     async (force?: boolean) => {
       const id = force ? null : localStorage.getItem(storageKey)
@@ -34,7 +43,8 @@ export function useChat(characterId: string) {
           const data: InitResponse = await res.json()
           localStorage.setItem(storageKey, data.conversationId)
           setConversationId(data.conversationId)
-          setMessages(data.messages || [])
+          setMessages([])
+          await appendMessagesSequentially(data.messages || [])
         } else {
           setConversationId(id)
           const res = await fetch(`/api/chat/history?conversationId=${id}`)
@@ -88,7 +98,7 @@ export function useChat(characterId: string) {
         throw new Error('post failed')
       }
       const data: PostResponse = await res.json()
-      setMessages((prev) => [...prev, ...data.messages])
+      await appendMessagesSequentially(data.messages)
     } catch {
       setError('送出失敗')
     } finally {
