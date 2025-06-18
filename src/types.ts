@@ -19,4 +19,11 @@ export interface CharacterDoc {
   avatarX?: number
   avatarY?: number
   rules: Rule[]
+  tasks?: string[]
+}
+
+export interface TaskDoc {
+  name: string
+  description?: string
+  createdAt?: import('firebase/firestore').Timestamp
 }

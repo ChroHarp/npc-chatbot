@@ -5,12 +5,12 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useRef } from 'react'
 import QRCode from 'qrcode'
 import { useParams, useRouter } from 'next/navigation'
-import { doc } from 'firebase/firestore'
-import { useDocument } from 'react-firebase-hooks/firestore'
+import { doc, collection } from 'firebase/firestore'
+import { useDocument, useCollection } from 'react-firebase-hooks/firestore'
 import Image from 'next/image'
 import { db } from '@/libs/firebase'
 import { updateCharacter } from '../actions'
-import { Rule, CharacterDoc } from '@/types'
+import { Rule, CharacterDoc, TaskDoc } from '@/types'
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024
 
@@ -18,6 +18,7 @@ export default function EditCharacterPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [value] = useDocument(id ? doc(db, 'characters', id) : undefined)
+  const [taskValue] = useCollection(collection(db, 'tasks'))
   const data = value?.data() as CharacterDoc | undefined
 
   const [name, setName] = useState('')
@@ -27,6 +28,7 @@ export default function EditCharacterPage() {
   const [avatarScale, setAvatarScale] = useState(1)
   const [avatarX, setAvatarX] = useState(0)
   const [avatarY, setAvatarY] = useState(0)
+  const [tasks, setTasks] = useState<string[]>([])
   const [dragRule, setDragRule] = useState<number | null>(null)
   const [dragResponse, setDragResponse] = useState<{
     rule: number
@@ -46,6 +48,7 @@ export default function EditCharacterPage() {
       setAvatarScale(d.avatarScale ?? 1)
       setAvatarX(d.avatarX ?? 0)
       setAvatarY(d.avatarY ?? 0)
+      setTasks(d.tasks || [])
       const raw = d.rules || []
       const first = raw.find((rr) => rr.type === 'firstLogin')
       const def = raw.find((rr) => rr.type === 'default')
@@ -87,6 +90,7 @@ export default function EditCharacterPage() {
         avatarScale,
         avatarX,
         avatarY,
+        tasks,
       )
       router.push('/admin/characters')
     } catch (err: unknown) {
@@ -152,6 +156,28 @@ export default function EditCharacterPage() {
               setFile(f)
             }}
           />
+        </label>
+        <label className="flex flex-col gap-1">
+          所屬任務
+          <select
+            multiple
+            className="border rounded px-2 py-1 h-28"
+            value={tasks}
+            onChange={(e) =>
+              setTasks(
+                Array.from(e.target.selectedOptions).map((o) => o.value)
+              )
+            }
+          >
+            {taskValue?.docs.map((doc) => {
+              const d = doc.data() as TaskDoc
+              return (
+                <option key={doc.id} value={doc.id}>
+                  {d.name}
+                </option>
+              )
+            })}
+          </select>
         </label>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex flex-col gap-4">

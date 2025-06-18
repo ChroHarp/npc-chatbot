@@ -24,6 +24,7 @@ export async function createCharacter(name: string, file: File) {
     avatarScale: 1,
     avatarX: 0,
     avatarY: 0,
+    tasks: [],
     rules: [
       {
         keywords: [],
@@ -58,6 +59,7 @@ export async function updateCharacter(
   avatarScale?: number,
   avatarX?: number,
   avatarY?: number,
+  tasks?: string[],
 ) {
   if (!auth.currentUser) {
     await signInAnonymously(auth);
@@ -113,6 +115,10 @@ export async function updateCharacter(
     await uploadBytes(imgRef, file);
     const url = await getDownloadURL(imgRef);
     data.avatarUrl = url;
+  }
+
+  if (tasks) {
+    data.tasks = tasks
   }
 
   await updateDoc(doc(db, 'characters', id), data);
