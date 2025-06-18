@@ -92,7 +92,7 @@ export default function EditCharacterPage() {
         avatarY,
         tasks,
       )
-      router.push('/admin/characters')
+      router.back()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -495,7 +495,7 @@ export default function EditCharacterPage() {
           <button
             type="button"
             className="px-4 py-2 border rounded"
-            onClick={() => router.push('/admin/characters')}
+            onClick={() => router.back()}
           >
             取消
           </button>

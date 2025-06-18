@@ -104,7 +104,7 @@ export default function TasksPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-screen-lg mx-auto">
       <div className="flex justify-end mb-4">
         <button className="px-4 py-2 bg-black text-white rounded" onClick={()=>setDrawerOpen(true)}>新增任務</button>
       </div>

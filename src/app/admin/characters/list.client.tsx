@@ -9,6 +9,7 @@ import { useCollection } from 'react-firebase-hooks/firestore'
 import { collection } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
 import { createCharacter, deleteCharacter } from './actions'
+import QRCode from 'qrcode'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
 import { CharacterDoc } from '@/types'
@@ -92,6 +93,19 @@ export default function CharactersPage() {
       ...(doc.data() as CharacterDoc)
     })) || []
 
+  async function handleDownloadQr(id: string, name: string) {
+    const url = `${window.location.origin}/chat/${id}`
+    try {
+      const dataUrl = await QRCode.toDataURL(url, { width: 450 })
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${name || 'QR'}QrCode.png`
+      link.click()
+    } catch {
+      alert('Failed to generate QR code')
+    }
+  }
+
   const columns: Column<(typeof characters)[number]>[] = [
     {
       header: 'Avatar',
@@ -122,6 +136,17 @@ export default function CharactersPage() {
     {
       header: '',
       accessor: (row) => (
+        <button
+          className="text-blue-500 underline"
+          onClick={() => handleDownloadQr(row.id, row.name)}
+        >
+          下載QR
+        </button>
+      ),
+    },
+    {
+      header: '',
+      accessor: (row) => (
         <Link href={`/admin/characters/${row.id}`} className="text-blue-500 underline">
           編輯
         </Link>
@@ -145,7 +170,7 @@ export default function CharactersPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-screen-lg mx-auto">
       <div className="flex justify-end mb-4">
         <button
           className="px-4 py-2 bg-black text-white rounded"
