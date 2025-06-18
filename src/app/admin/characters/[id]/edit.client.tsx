@@ -5,12 +5,12 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useRef } from 'react'
 import QRCode from 'qrcode'
 import { useParams, useRouter } from 'next/navigation'
-import { doc } from 'firebase/firestore'
-import { useDocument } from 'react-firebase-hooks/firestore'
+import { doc, collection } from 'firebase/firestore'
+import { useDocument, useCollection } from 'react-firebase-hooks/firestore'
 import Image from 'next/image'
 import { db } from '@/libs/firebase'
 import { updateCharacter } from '../actions'
-import { Rule, CharacterDoc } from '@/types'
+import { Rule, CharacterDoc, TaskDoc } from '@/types'
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024
 
@@ -18,6 +18,7 @@ export default function EditCharacterPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [value] = useDocument(id ? doc(db, 'characters', id) : undefined)
+  const [taskValue] = useCollection(collection(db, 'tasks'))
   const data = value?.data() as CharacterDoc | undefined
 
   const [name, setName] = useState('')
@@ -27,6 +28,7 @@ export default function EditCharacterPage() {
   const [avatarScale, setAvatarScale] = useState(1)
   const [avatarX, setAvatarX] = useState(0)
   const [avatarY, setAvatarY] = useState(0)
+  const [tasks, setTasks] = useState<string[]>([])
   const [dragRule, setDragRule] = useState<number | null>(null)
   const [dragResponse, setDragResponse] = useState<{
     rule: number
@@ -46,6 +48,7 @@ export default function EditCharacterPage() {
       setAvatarScale(d.avatarScale ?? 1)
       setAvatarX(d.avatarX ?? 0)
       setAvatarY(d.avatarY ?? 0)
+      setTasks(d.tasks || [])
       const raw = d.rules || []
       const first = raw.find((rr) => rr.type === 'firstLogin')
       const def = raw.find((rr) => rr.type === 'default')
@@ -87,8 +90,9 @@ export default function EditCharacterPage() {
         avatarScale,
         avatarX,
         avatarY,
+        tasks,
       )
-      router.push('/admin/characters')
+      router.back()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -152,6 +156,61 @@ export default function EditCharacterPage() {
               setFile(f)
             }}
           />
+        </label>
+        <label className="flex flex-col gap-1">
+          所屬任務
+          <div className="flex flex-wrap gap-1 mb-1">
+            {tasks.map((tid) => {
+              const t = taskValue?.docs.find((d) => d.id === tid)
+              if (!t) return null
+              const data = t.data() as TaskDoc
+              return (
+                <span
+                  key={tid}
+                  className="px-2 py-1 text-sm bg-gray-200 rounded flex items-center gap-1"
+                >
+                  {data.name}
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() =>
+                      setTasks((arr) => {
+                        const idx = arr.indexOf(tid)
+                        if (idx === -1) return arr
+                        const copy = [...arr]
+                        copy.splice(idx, 1)
+                        return copy
+                      })
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              )
+            })}
+          </div>
+          <select
+            className="border rounded px-2 py-1"
+            onChange={(e) => {
+              const val = e.target.value
+              if (!val) return
+              setTasks((arr) =>
+                arr.includes(val) ? arr : [...arr, val]
+              )
+              e.target.value = ''
+            }}
+          >
+            <option value="">選擇任務</option>
+            {taskValue?.docs.map((doc) => {
+              if (tasks.includes(doc.id)) return null
+              const d = doc.data() as TaskDoc
+              return (
+                <option key={doc.id} value={doc.id}>
+                  {d.name}
+                </option>
+              )
+            })}
+          </select>
         </label>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex flex-col gap-4">
@@ -436,7 +495,7 @@ export default function EditCharacterPage() {
           <button
             type="button"
             className="px-4 py-2 border rounded"
-            onClick={() => router.push('/admin/characters')}
+            onClick={() => router.back()}
           >
             取消
           </button>

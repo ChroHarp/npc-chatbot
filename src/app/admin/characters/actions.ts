@@ -1,5 +1,13 @@
 // src/app/admin/characters/actions.ts
-import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  writeBatch,
+} from 'firebase/firestore'
 import { db, storage, auth } from '@/libs/firebase'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { signInAnonymously } from 'firebase/auth'
@@ -24,6 +32,8 @@ export async function createCharacter(name: string, file: File) {
     avatarScale: 1,
     avatarX: 0,
     avatarY: 0,
+    order: 0,
+    tasks: [],
     rules: [
       {
         keywords: [],
@@ -47,6 +57,18 @@ export async function createCharacter(name: string, file: File) {
       },
     ],
   }
+
+  const snaps = await getDocs(collection(db, 'characters'))
+  const docs = snaps.docs.sort(
+    (a, b) =>
+      (a.data().order ?? Infinity) - (b.data().order ?? Infinity)
+  )
+  const batch = writeBatch(db)
+  docs.forEach((snap, idx) => {
+    batch.update(snap.ref, { order: idx + 1 })
+  })
+  await batch.commit()
+
   await addDoc(collection(db, 'characters'), docData)
 }
 
@@ -58,6 +80,7 @@ export async function updateCharacter(
   avatarScale?: number,
   avatarX?: number,
   avatarY?: number,
+  tasks?: string[],
 ) {
   if (!auth.currentUser) {
     await signInAnonymously(auth);
@@ -115,6 +138,10 @@ export async function updateCharacter(
     data.avatarUrl = url;
   }
 
+  if (tasks) {
+    data.tasks = tasks
+  }
+
   await updateDoc(doc(db, 'characters', id), data);
 }
 
@@ -123,4 +150,15 @@ export async function deleteCharacter(id: string) {
     await signInAnonymously(auth)
   }
   await deleteDoc(doc(db, 'characters', id))
+}
+
+export async function reorderCharacters(ids: string[]) {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth)
+  }
+  const batch = writeBatch(db)
+  ids.forEach((id, idx) => {
+    batch.update(doc(db, 'characters', id), { order: idx })
+  })
+  await batch.commit()
 }

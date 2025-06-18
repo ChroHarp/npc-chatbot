@@ -2,13 +2,14 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCollection } from 'react-firebase-hooks/firestore'
 import { collection } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
-import { createCharacter, deleteCharacter } from './actions'
+import { createCharacter, deleteCharacter, reorderCharacters } from './actions'
+import QRCode from 'qrcode'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
 import { CharacterDoc } from '@/types'
@@ -85,14 +86,35 @@ function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
 export default function CharactersPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [value] = useCollection(collection(db, 'characters'))
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
 
   const characters =
-    value?.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as CharacterDoc)
-    })) || []
+    value?.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as CharacterDoc),
+      }))
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)) || []
+
+  async function handleDownloadQr(id: string, name: string) {
+    const url = `${window.location.origin}/chat/${id}`
+    try {
+      const dataUrl = await QRCode.toDataURL(url, { width: 450 })
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${name || 'QR'}QrCode.png`
+      link.click()
+    } catch {
+      alert('Failed to generate QR code')
+    }
+  }
 
   const columns: Column<(typeof characters)[number]>[] = [
+    {
+      header: '',
+      accessor: () => <span className="cursor-move">☰</span>,
+      widthClassName: 'w-4',
+    },
     {
       header: 'Avatar',
       accessor: (row) => (
@@ -122,6 +144,17 @@ export default function CharactersPage() {
     {
       header: '',
       accessor: (row) => (
+        <button
+          className="text-blue-500 underline"
+          onClick={() => handleDownloadQr(row.id, row.name)}
+        >
+          下載QR
+        </button>
+      ),
+    },
+    {
+      header: '',
+      accessor: (row) => (
         <Link href={`/admin/characters/${row.id}`} className="text-blue-500 underline">
           編輯
         </Link>
@@ -144,8 +177,29 @@ export default function CharactersPage() {
     },
   ]
 
+  function rowProps(_row: (typeof characters)[number], idx: number) {
+    return {
+      draggable: true,
+      onDragStart: () => setDragIdx(idx),
+      onDragOver: (e: React.DragEvent) => {
+        if (dragIdx !== null) e.preventDefault()
+      },
+      onDrop: async () => {
+        if (dragIdx === null || dragIdx === idx) {
+          setDragIdx(null)
+          return
+        }
+        const ids = characters.map((c) => c.id)
+        const [moved] = ids.splice(dragIdx, 1)
+        ids.splice(idx, 0, moved)
+        setDragIdx(null)
+        await reorderCharacters(ids)
+      },
+    }
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-screen-lg mx-auto">
       <div className="flex justify-end mb-4">
         <button
           className="px-4 py-2 bg-black text-white rounded"
@@ -155,7 +209,7 @@ export default function CharactersPage() {
         </button>
       </div>
 
-      <DataTable columns={columns} data={characters} />
+      <DataTable columns={columns} data={characters} rowProps={rowProps} />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <h2 className="text-xl mb-4">新增角色</h2>
