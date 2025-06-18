@@ -8,6 +8,7 @@ import { db } from '@/libs/firebase'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createTask, deleteTask } from './actions'
 import type { TaskDoc, CharacterDoc } from '@/types'
 
@@ -44,11 +45,36 @@ function NewTaskForm({ characters, onCreated }: { characters: {id: string, data:
       </label>
       <label className="flex flex-col gap-1">
         加入人物
-        <select multiple className="border rounded px-2 py-1 h-28" value={selected} onChange={(e)=>setSelected(Array.from(e.target.selectedOptions).map(o=>o.value))}>
+        <div className="border rounded px-2 py-1 max-h-40 overflow-auto flex flex-col gap-1">
           {characters.map(ch => (
-            <option key={ch.id} value={ch.id}>{ch.data.name}</option>
+            <label key={ch.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="mr-1"
+                value={ch.id}
+                checked={selected.includes(ch.id)}
+                onChange={e => {
+                  const val = ch.id
+                  setSelected(arr =>
+                    e.target.checked ? [...arr, val] : arr.filter(id => id !== val)
+                  )
+                }}
+              />
+              <div className="relative w-6 h-6 overflow-hidden rounded-full">
+                <Image
+                  src={ch.data.avatarUrl || 'https://placehold.co/24x24.png'}
+                  alt={ch.data.name}
+                  fill
+                  className="object-cover"
+                  style={{
+                    transform: `translate(${ch.data.avatarX ?? 0}%,${ch.data.avatarY ?? 0}%) scale(${ch.data.avatarScale ?? 1})`
+                  }}
+                />
+              </div>
+              <span>{ch.data.name}</span>
+            </label>
           ))}
-        </select>
+        </div>
       </label>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <button type="submit" disabled={loading} className="self-start px-4 py-2 bg-black text-white rounded disabled:opacity-50">
