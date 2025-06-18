@@ -59,10 +59,15 @@ export async function createCharacter(name: string, file: File) {
   }
 
   const snaps = await getDocs(collection(db, 'characters'))
-  for (const snap of snaps.docs) {
-    const current = snap.data().order
-    await updateDoc(snap.ref, { order: typeof current === 'number' ? current + 1 : 1 })
-  }
+  const docs = snaps.docs.sort(
+    (a, b) =>
+      (a.data().order ?? Infinity) - (b.data().order ?? Infinity)
+  )
+  const batch = writeBatch(db)
+  docs.forEach((snap, idx) => {
+    batch.update(snap.ref, { order: idx + 1 })
+  })
+  await batch.commit()
 
   await addDoc(collection(db, 'characters'), docData)
 }
