@@ -44,7 +44,7 @@ export function useChat(characterId: string) {
           localStorage.setItem(storageKey, data.conversationId)
           setConversationId(data.conversationId)
           setMessages([])
-          await appendMessagesSequentially(data.messages || [])
+          void appendMessagesSequentially(data.messages || [])
         } else {
           setConversationId(id)
           const res = await fetch(`/api/chat/history?conversationId=${id}`)
@@ -98,7 +98,7 @@ export function useChat(characterId: string) {
         throw new Error('post failed')
       }
       const data: PostResponse = await res.json()
-      await appendMessagesSequentially(data.messages)
+      void appendMessagesSequentially(data.messages)
     } catch {
       setError('送出失敗')
     } finally {
