@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useRef } from 'react'
+import QRCode from 'qrcode'
 import { useParams, useRouter } from 'next/navigation'
 import { doc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
@@ -92,6 +93,19 @@ export default function EditCharacterPage() {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleDownloadQr() {
+    const url = `${window.location.origin}/chat/${id}`
+    try {
+      const dataUrl = await QRCode.toDataURL(url, { width: 450 })
+      const link = document.createElement('a')
+      link.href = dataUrl
+      link.download = `${name || 'QR'}QrCode.png`
+      link.click()
+    } catch {
+      alert('Failed to generate QR code')
     }
   }
 
@@ -425,6 +439,13 @@ export default function EditCharacterPage() {
             onClick={() => router.push('/admin/characters')}
           >
             取消
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 border rounded"
+            onClick={handleDownloadQr}
+          >
+            QR code
           </button>
         </div>
       </form>
