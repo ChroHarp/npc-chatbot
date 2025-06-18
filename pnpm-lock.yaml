@@ -39,6 +39,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.0
+      '@types/qrcode':
+        specifier: ^1.5.5
+        version: 1.5.5
       '@types/react':
         specifier: ^19
         version: 19.1.6
@@ -709,6 +712,9 @@ packages:
 
   '@types/node@20.19.0':
     resolution: {integrity: sha512-hfrc+1tud1xcdVTABC2JiomZJEklMcXYNTVtZLAeqTVWD+qL5jkHKT+1lOtqDdGxt+mB53DTtiz673vfjU8D1Q==}
+
+  '@types/qrcode@1.5.5':
+    resolution: {integrity: sha512-CdfBi/e3Qk+3Z/fXYShipBT13OJ2fDO2Q2w5CIP5anLTLIndQG9z6P1cnm+8zCWSpm5dnxMFd/uREtb0EXuQzg==}
 
   '@types/react-dom@19.1.6':
     resolution: {integrity: sha512-4hOiT/dwO8Ko0gV1m/TJZYk3y0KBnY9vzDh7W+DH17b2HFSOGgdj33dhihPeuy3l0q23+4e+hoXHV6hCC4dCXw==}
@@ -2910,6 +2916,10 @@ snapshots:
   '@types/node@20.19.0':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/qrcode@1.5.5':
+    dependencies:
+      '@types/node': 20.19.0
 
   '@types/react-dom@19.1.6(@types/react@19.1.6)':
     dependencies:
