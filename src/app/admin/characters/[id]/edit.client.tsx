@@ -159,17 +159,44 @@ export default function EditCharacterPage() {
         </label>
         <label className="flex flex-col gap-1">
           所屬任務
-          <select
-            multiple
-            className="border rounded px-2 py-1 h-28"
-            value={tasks}
-            onChange={(e) =>
-              setTasks(
-                Array.from(e.target.selectedOptions).map((o) => o.value)
+          <div className="flex flex-wrap gap-1 mb-1">
+            {tasks.map((tid) => {
+              const t = taskValue?.docs.find((d) => d.id === tid)
+              if (!t) return null
+              const data = t.data() as TaskDoc
+              return (
+                <span
+                  key={tid}
+                  className="px-2 py-1 text-sm bg-gray-200 rounded flex items-center gap-1"
+                >
+                  {data.name}
+                  <button
+                    type="button"
+                    className="text-xs text-red-600"
+                    onClick={() =>
+                      setTasks((arr) => arr.filter((id) => id !== tid))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
               )
-            }
+            })}
+          </div>
+          <select
+            className="border rounded px-2 py-1"
+            onChange={(e) => {
+              const val = e.target.value
+              if (!val) return
+              setTasks((arr) =>
+                arr.includes(val) ? arr : [...arr, val]
+              )
+              e.target.value = ''
+            }}
           >
+            <option value="">選擇任務</option>
             {taskValue?.docs.map((doc) => {
+              if (tasks.includes(doc.id)) return null
               const d = doc.data() as TaskDoc
               return (
                 <option key={doc.id} value={doc.id}>
