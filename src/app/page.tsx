@@ -20,10 +20,14 @@ export default function HomePage() {
       avatarY: defaultCharacters.default.avatarY,
       avatarScale: defaultCharacters.default.avatarScale,
     },
-    ...(value?.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as CharacterDoc),
-    })) || []),
+    ...(
+      value?.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as CharacterDoc),
+        }))
+        .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)) || []
+    ),
   ];
 
   return (
