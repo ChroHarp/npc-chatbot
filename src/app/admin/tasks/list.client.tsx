@@ -87,10 +87,13 @@ function NewTaskForm({ characters, onCreated }: { characters: {id: string, data:
 export default function TasksPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [taskSnap] = useCollection(query(collection(db,'tasks'), orderBy('createdAt','desc')))
-  const [charSnap] = useCollection(query(collection(db,'characters'), orderBy('order','asc')))
+  const [charSnap] = useCollection(collection(db,'characters'))
 
   const tasks = taskSnap?.docs.map(doc => ({ id: doc.id, ...(doc.data() as TaskDoc) })) || []
-  const characters = charSnap?.docs.map(doc => ({ id: doc.id, data: doc.data() as CharacterDoc })) || []
+  const characters =
+    charSnap?.docs
+      .map(doc => ({ id: doc.id, data: doc.data() as CharacterDoc }))
+      .sort((a, b) => (a.data.order ?? Infinity) - (b.data.order ?? Infinity)) || []
 
   const columns: Column<(typeof tasks)[number]>[] = [
     { header: 'Name', accessor: row => row.name, widthClassName: 'w-1/4' },

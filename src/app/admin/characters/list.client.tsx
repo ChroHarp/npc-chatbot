@@ -6,7 +6,7 @@ import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCollection } from 'react-firebase-hooks/firestore'
-import { collection, orderBy, query } from 'firebase/firestore'
+import { collection } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
 import { createCharacter, deleteCharacter, reorderCharacters } from './actions'
 import QRCode from 'qrcode'
@@ -85,14 +85,16 @@ function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
 
 export default function CharactersPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [value] = useCollection(query(collection(db, 'characters'), orderBy('order', 'asc')))
+  const [value] = useCollection(collection(db, 'characters'))
   const [dragIdx, setDragIdx] = useState<number | null>(null)
 
   const characters =
-    value?.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as CharacterDoc)
-    })) || []
+    value?.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as CharacterDoc),
+      }))
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)) || []
 
   async function handleDownloadQr(id: string, name: string) {
     const url = `${window.location.origin}/chat/${id}`
