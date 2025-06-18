@@ -174,7 +174,13 @@ export default function EditCharacterPage() {
                     type="button"
                     className="text-xs text-red-600"
                     onClick={() =>
-                      setTasks((arr) => arr.filter((id) => id !== tid))
+                      setTasks((arr) => {
+                        const idx = arr.indexOf(tid)
+                        if (idx === -1) return arr
+                        const copy = [...arr]
+                        copy.splice(idx, 1)
+                        return copy
+                      })
                     }
                   >
                     ×
