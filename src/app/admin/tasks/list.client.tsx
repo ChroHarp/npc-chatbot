@@ -93,14 +93,26 @@ export default function TasksPage() {
   const characters = charSnap?.docs.map(doc => ({ id: doc.id, data: doc.data() as CharacterDoc })) || []
 
   const columns: Column<(typeof tasks)[number]>[] = [
-    { header: 'Name', accessor: row => row.name },
-    { header: 'Description', accessor: row => row.description || '' },
-    { header: '', accessor: row => (
+    { header: 'Name', accessor: row => row.name, widthClassName: 'w-1/4' },
+    {
+      header: 'Description',
+      accessor: row => row.description || '',
+      widthClassName: 'w-1/2'
+    },
+    {
+      header: '',
+      accessor: row => (
         <Link href={`/admin/tasks/${row.id}`} className="text-blue-500 underline">管理</Link>
-      ) },
-    { header: '', accessor: row => (
-        <button className="text-red-600 underline" onClick={async ()=>{ if(confirm('確定要刪除這個任務嗎？')) await deleteTask(row.id) }}>刪除</button>
-      )},
+      ),
+      widthClassName: 'w-24'
+    },
+    {
+      header: '',
+      accessor: row => (
+        <button className="text-red-600 underline" onClick={async () => { if(confirm('確定要刪除這個任務嗎？')) await deleteTask(row.id) }}>刪除</button>
+      ),
+      widthClassName: 'w-24'
+    },
   ]
 
   return (

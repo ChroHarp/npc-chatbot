@@ -5,6 +5,9 @@ import React from 'react'
 export interface Column<T> {
   header: React.ReactNode
   accessor: (row: T) => React.ReactNode
+  thClassName?: string
+  tdClassName?: string
+  widthClassName?: string
 }
 
 interface DataTableProps<T> {
@@ -19,7 +22,10 @@ export function DataTable<T>({ columns, data }: DataTableProps<T>) {
         <thead className="bg-gray-50 dark:bg-neutral-800 [&_tr]:border-b">
           <tr>
             {columns.map((col, i) => (
-              <th key={i} className="px-3 py-2 text-left font-medium text-muted-foreground">
+              <th
+                key={i}
+                className={`px-3 py-2 text-left font-medium text-muted-foreground ${col.thClassName ?? ''} ${col.widthClassName ?? ''}`.trim()}
+              >
                 {col.header}
               </th>
             ))}
@@ -29,7 +35,10 @@ export function DataTable<T>({ columns, data }: DataTableProps<T>) {
           {data.map((row, i) => (
             <tr key={i} className="border-b">
               {columns.map((col, j) => (
-                <td key={j} className="px-3 py-2">
+                <td
+                  key={j}
+                  className={`px-3 py-2 ${col.tdClassName ?? ''} ${col.widthClassName ?? ''}`.trim()}
+                >
                   {col.accessor(row)}
                 </td>
               ))}
