@@ -87,7 +87,7 @@ function NewTaskForm({ characters, onCreated }: { characters: {id: string, data:
 export default function TasksPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [taskSnap] = useCollection(query(collection(db,'tasks'), orderBy('createdAt','desc')))
-  const [charSnap] = useCollection(collection(db,'characters'))
+  const [charSnap] = useCollection(query(collection(db,'characters'), orderBy('order','asc')))
 
   const tasks = taskSnap?.docs.map(doc => ({ id: doc.id, ...(doc.data() as TaskDoc) })) || []
   const characters = charSnap?.docs.map(doc => ({ id: doc.id, data: doc.data() as CharacterDoc })) || []

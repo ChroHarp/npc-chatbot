@@ -18,6 +18,8 @@ export interface CharacterDoc {
   avatarScale?: number
   avatarX?: number
   avatarY?: number
+  /** Determines display order in admin list */
+  order?: number
   rules: Rule[]
   tasks?: string[]
 }

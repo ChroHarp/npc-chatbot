@@ -1,5 +1,13 @@
 // src/app/admin/characters/actions.ts
-import { collection, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  getDocs,
+  writeBatch,
+} from 'firebase/firestore'
 import { db, storage, auth } from '@/libs/firebase'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { signInAnonymously } from 'firebase/auth'
@@ -24,6 +32,7 @@ export async function createCharacter(name: string, file: File) {
     avatarScale: 1,
     avatarX: 0,
     avatarY: 0,
+    order: 0,
     tasks: [],
     rules: [
       {
@@ -48,6 +57,13 @@ export async function createCharacter(name: string, file: File) {
       },
     ],
   }
+
+  const snaps = await getDocs(collection(db, 'characters'))
+  for (const snap of snaps.docs) {
+    const current = snap.data().order
+    await updateDoc(snap.ref, { order: typeof current === 'number' ? current + 1 : 1 })
+  }
+
   await addDoc(collection(db, 'characters'), docData)
 }
 
@@ -129,4 +145,15 @@ export async function deleteCharacter(id: string) {
     await signInAnonymously(auth)
   }
   await deleteDoc(doc(db, 'characters', id))
+}
+
+export async function reorderCharacters(ids: string[]) {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth)
+  }
+  const batch = writeBatch(db)
+  ids.forEach((id, idx) => {
+    batch.update(doc(db, 'characters', id), { order: idx })
+  })
+  await batch.commit()
 }

@@ -2,13 +2,13 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCollection } from 'react-firebase-hooks/firestore'
-import { collection } from 'firebase/firestore'
+import { collection, orderBy, query } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
-import { createCharacter, deleteCharacter } from './actions'
+import { createCharacter, deleteCharacter, reorderCharacters } from './actions'
 import QRCode from 'qrcode'
 import { DataTable, Column } from '@/components/data-table'
 import { Drawer } from '@/components/drawer'
@@ -85,7 +85,8 @@ function NewCharacterForm({ onCreated }: { onCreated: () => void }) {
 
 export default function CharactersPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [value] = useCollection(collection(db, 'characters'))
+  const [value] = useCollection(query(collection(db, 'characters'), orderBy('order', 'asc')))
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
 
   const characters =
     value?.docs.map((doc) => ({
@@ -107,6 +108,11 @@ export default function CharactersPage() {
   }
 
   const columns: Column<(typeof characters)[number]>[] = [
+    {
+      header: '',
+      accessor: () => <span className="cursor-move">☰</span>,
+      widthClassName: 'w-4',
+    },
     {
       header: 'Avatar',
       accessor: (row) => (
@@ -169,6 +175,27 @@ export default function CharactersPage() {
     },
   ]
 
+  function rowProps(_row: (typeof characters)[number], idx: number) {
+    return {
+      draggable: true,
+      onDragStart: () => setDragIdx(idx),
+      onDragOver: (e: React.DragEvent) => {
+        if (dragIdx !== null) e.preventDefault()
+      },
+      onDrop: async () => {
+        if (dragIdx === null || dragIdx === idx) {
+          setDragIdx(null)
+          return
+        }
+        const ids = characters.map((c) => c.id)
+        const [moved] = ids.splice(dragIdx, 1)
+        ids.splice(idx, 0, moved)
+        setDragIdx(null)
+        await reorderCharacters(ids)
+      },
+    }
+  }
+
   return (
     <div className="p-6 max-w-screen-lg mx-auto">
       <div className="flex justify-end mb-4">
@@ -180,7 +207,7 @@ export default function CharactersPage() {
         </button>
       </div>
 
-      <DataTable columns={columns} data={characters} />
+      <DataTable columns={columns} data={characters} rowProps={rowProps} />
 
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <h2 className="text-xl mb-4">新增角色</h2>

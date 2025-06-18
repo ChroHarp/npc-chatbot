@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { doc, collection } from 'firebase/firestore'
+import { doc, collection, orderBy, query } from 'firebase/firestore'
 import { useDocument, useCollection } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import { updateTask, deleteTask } from '../actions'
@@ -16,7 +16,7 @@ export default function EditTaskPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [taskSnap] = useDocument(id ? doc(db, 'tasks', id) : undefined)
-  const [charSnap] = useCollection(collection(db, 'characters'))
+  const [charSnap] = useCollection(query(collection(db, 'characters'), orderBy('order', 'asc')))
   const task = taskSnap?.data() as TaskDoc | undefined
   const characters = charSnap?.docs.map(d => ({ id: d.id, data: d.data() as CharacterDoc })) || []
 

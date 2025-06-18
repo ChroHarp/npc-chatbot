@@ -13,9 +13,10 @@ export interface Column<T> {
 interface DataTableProps<T> {
   columns: Column<T>[]
   data: T[]
+  rowProps?: (row: T, index: number) => React.HTMLAttributes<HTMLTableRowElement>
 }
 
-export function DataTable<T>({ columns, data }: DataTableProps<T>) {
+export function DataTable<T>({ columns, data, rowProps }: DataTableProps<T>) {
   return (
     <div className="rounded-md border overflow-x-auto">
       <table className="w-full caption-bottom text-sm">
@@ -33,7 +34,7 @@ export function DataTable<T>({ columns, data }: DataTableProps<T>) {
         </thead>
         <tbody className="[&_tr:last-child]:border-0">
           {data.map((row, i) => (
-            <tr key={i} className="border-b">
+            <tr key={i} className="border-b" {...(rowProps ? rowProps(row, i) : {})}>
               {columns.map((col, j) => (
                 <td
                   key={j}
