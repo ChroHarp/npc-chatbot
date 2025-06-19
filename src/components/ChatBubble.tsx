@@ -1,12 +1,19 @@
 'use client'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import type { ChatMessage } from '@/types/chat'
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user'
   const [showImage, setShowImage] = useState(false)
+  useEffect(() => {
+    if (showImage) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }, [showImage])
 
   function renderContent() {
     switch (message.type) {
@@ -24,7 +31,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
             />
             {showImage && (
               <div
-                className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
                 onClick={() => setShowImage(false)}
               >
                 <div

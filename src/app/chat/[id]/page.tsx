@@ -21,10 +21,26 @@ export default function CharacterChatPage() {
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
 
+  function smoothScroll(node: HTMLElement, duration = 800) {
+    const start = node.scrollTop
+    const end = node.scrollHeight - node.clientHeight
+    const change = end - start
+    const startTime = performance.now()
+
+    function animate(now: number) {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      node.scrollTop = start + change * progress
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+
+    requestAnimationFrame(animate)
+  }
+
   useEffect(() => {
     const node = listRef.current
     if (!node) return
-    node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
+    smoothScroll(node, 1000)
   }, [messages])
 
   function handleSubmit(e: React.FormEvent) {
