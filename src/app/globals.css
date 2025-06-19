@@ -28,11 +28,11 @@ body {
 
 /* Custom styles used on the chat page */
 .chat-input {
-  @apply flex-1 border border-gray-300 rounded-lg p-2 h-10;
+  @apply flex-1 border border-gray-300 rounded-lg p-2 h-10 shadow-inner focus:outline-none;
 }
 
 .send-button {
-  @apply px-4 py-2 bg-teal-600 text-white rounded-lg shadow disabled:opacity-50;
+  @apply px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg shadow disabled:opacity-50;
 }
 @keyframes float-in {
   from {

@@ -39,6 +39,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
                   </button>
                   <TransformWrapper>
                     <TransformComponent wrapperClass="max-h-screen max-w-screen">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={message.content}
                         alt="image"
@@ -85,10 +86,10 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
       )}
       <div className="max-w-[70%]">
         <div
-          className={`px-4 py-3 rounded-xl shadow text-sm break-words ${
+          className={`px-4 py-3 rounded-xl shadow-md text-sm break-words ${
             isUser
-              ? 'bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800'
-              : 'bg-gradient-to-br from-green-50 to-green-100 text-gray-800'
+              ? 'bg-gradient-to-br from-blue-50 via-blue-100 to-white text-gray-800'
+              : 'bg-gradient-to-br from-green-50 via-green-100 to-white text-gray-800'
           } ${message.typing ? 'animate-pulse' : ''}`}
         >
           {message.typing ? <span className="tracking-widest">...</span> : renderContent()}
