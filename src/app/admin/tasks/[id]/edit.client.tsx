@@ -10,6 +10,7 @@ import { updateTask, deleteTask } from '../actions'
 import type { TaskDoc, CharacterDoc } from '@/types'
 import Image from 'next/image'
 import QRCode from 'qrcode'
+import JSZip from 'jszip'
 import Link from 'next/link'
 
 export default function EditTaskPage() {
@@ -77,6 +78,27 @@ export default function EditTaskPage() {
     }
   }
 
+  async function handleDownloadZip() {
+    const zip = new JSZip()
+    const selectedChars = characters.filter(ch => selected.includes(ch.id))
+    for (const ch of selectedChars) {
+      const url = `${window.location.origin}/chat/${ch.id}`
+      try {
+        const dataUrl = await QRCode.toDataURL(url, { width: 450 })
+        const base64 = dataUrl.split(',')[1]
+        zip.file(`${ch.data.name || ch.id}.png`, base64, { base64: true })
+      } catch {
+        console.error('Failed to generate QR code for', ch.id)
+      }
+    }
+    const blob = await zip.generateAsync({ type: 'blob' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'qrcodes.zip'
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
   return (
     <div className="p-6 flex flex-col gap-4 max-w-md">
       <h1 className="text-xl">編輯任務</h1>
@@ -129,6 +151,11 @@ export default function EditTaskPage() {
         </div>
       </form>
       <h2 className="text-lg mt-4">人物列表</h2>
+      <div className="flex justify-end mb-2">
+        <button className="text-blue-500 underline" onClick={handleDownloadZip}>
+          QRcode打包下載
+        </button>
+      </div>
       <div className="flex flex-col gap-2">
         {characters.filter(ch => selected.includes(ch.id)).map(ch => (
           <div key={ch.id} className="flex items-center gap-2">

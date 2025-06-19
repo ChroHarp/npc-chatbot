@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "firebase": "^11.9.0",
+    "jszip": "^3.10.1",
     "next": "15.3.3",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
