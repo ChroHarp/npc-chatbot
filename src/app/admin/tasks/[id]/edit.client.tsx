@@ -86,7 +86,7 @@ export default function EditTaskPage() {
       try {
         const dataUrl = await QRCode.toDataURL(url, { width: 450 })
         const base64 = dataUrl.split(',')[1]
-        zip.file(`${ch.data.name || ch.id}.png`, base64, { base64: true })
+        zip.file(`${(ch.data.name || ch.id)}QRcode.png`, base64, { base64: true })
       } catch {
         console.error('Failed to generate QR code for', ch.id)
       }
@@ -152,7 +152,10 @@ export default function EditTaskPage() {
       </form>
       <h2 className="text-lg mt-4">人物列表</h2>
       <div className="flex justify-end mb-2">
-        <button className="text-blue-500 underline" onClick={handleDownloadZip}>
+        <button
+          className="px-4 py-2 bg-black text-white rounded"
+          onClick={handleDownloadZip}
+        >
           QRcode打包下載
         </button>
       </div>
