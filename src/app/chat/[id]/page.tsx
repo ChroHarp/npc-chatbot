@@ -22,7 +22,9 @@ export default function CharacterChatPage() {
   const listRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    listRef.current?.scrollTo(0, listRef.current.scrollHeight)
+    const node = listRef.current
+    if (!node) return
+    node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
   function handleSubmit(e: React.FormEvent) {
@@ -58,7 +60,10 @@ export default function CharacterChatPage() {
           </div>
         </div>
       )}
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2 pb-28 scroll-smooth"
+      >
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
         ))}
