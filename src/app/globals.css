@@ -47,3 +47,12 @@ body {
 .float-in {
   animation: float-in 0.3s ease both;
 }
+
+/* Hide scrollbars while preserving scroll behavior */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

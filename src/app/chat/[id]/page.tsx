@@ -62,7 +62,7 @@ export default function CharacterChatPage() {
       )}
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 pb-28 scroll-smooth"
+        className="flex-1 overflow-y-auto p-4 space-y-2 pb-28 scroll-smooth no-scrollbar"
       >
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
