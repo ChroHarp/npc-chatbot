@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e0f7f7;
+  --background: #f2f9fb;
   --foreground: #00332e;
 }
 
@@ -28,9 +28,9 @@ body {
 
 /* Custom styles used on the chat page */
 .chat-textarea {
-  @apply flex-1 border rounded p-2 resize-none h-10;
+  @apply flex-1 border border-gray-300 rounded-lg p-2 resize-none h-10;
 }
 
 .send-button {
-  @apply px-4 py-2 bg-teal-600 text-white rounded disabled:opacity-50;
+  @apply px-4 py-2 bg-teal-600 text-white rounded-lg shadow disabled:opacity-50;
 }

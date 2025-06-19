@@ -33,8 +33,8 @@ export default function CharacterChatPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-teal-50 dark:bg-neutral-950">
-      <header className="p-4 border-b flex justify-between items-center bg-teal-600 text-white">
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
+      <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-500 to-teal-600 text-white">
         <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-white" onClick={clear}>
           重設對話
