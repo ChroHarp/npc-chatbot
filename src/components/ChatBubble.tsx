@@ -96,7 +96,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
       )}
       <div className="max-w-[70%]">
         <div
-          className={`px-4 py-3 rounded-xl shadow-md text-sm break-words ${
+          className={`px-4 py-3 rounded-xl shadow-md text-base break-words ${
             isUser
               ? 'bg-gradient-to-br from-blue-50 via-blue-100 to-white text-gray-800'
               : 'bg-gradient-to-br from-green-50 via-green-100 to-white text-gray-800'
