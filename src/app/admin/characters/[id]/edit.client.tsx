@@ -173,7 +173,8 @@ export default function EditCharacterPage() {
                   <button
                     type="button"
                     className="text-xs text-red-600"
-                    onClick={() =>
+                    onClick={() => {
+                      if (!confirm('確定要移除此任務嗎？')) return
                       setTasks((arr) => {
                         const idx = arr.indexOf(tid)
                         if (idx === -1) return arr
@@ -181,7 +182,7 @@ export default function EditCharacterPage() {
                         copy.splice(idx, 1)
                         return copy
                       })
-                    }
+                    }}
                   >
                     ×
                   </button>
