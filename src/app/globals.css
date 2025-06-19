@@ -27,8 +27,8 @@ body {
 }
 
 /* Custom styles used on the chat page */
-.chat-textarea {
-  @apply flex-1 border border-gray-300 rounded-lg p-2 resize-none h-10;
+.chat-input {
+  @apply flex-1 border border-gray-300 rounded-lg p-2 h-10;
 }
 
 .send-button {

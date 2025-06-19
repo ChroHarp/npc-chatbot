@@ -68,8 +68,9 @@ export default function CharacterChatPage() {
         onSubmit={handleSubmit}
         className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
       >
-        <textarea
-          className="chat-textarea"
+        <input
+          type="text"
+          className="chat-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
