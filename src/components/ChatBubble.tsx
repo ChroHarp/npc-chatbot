@@ -89,11 +89,11 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
             isUser
               ? 'bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800'
               : 'bg-gradient-to-br from-green-50 to-green-100 text-gray-800'
-          }`}
+          } ${message.typing ? 'animate-pulse' : ''}`}
         >
-          {renderContent()}
+          {message.typing ? <span className="tracking-widest">...</span> : renderContent()}
         </div>
-        {message.timestamp && (
+        {message.timestamp && !message.typing && (
           <time className="block mt-1 text-xs text-gray-500 text-right">
             {new Date(message.timestamp).toLocaleTimeString()}
           </time>

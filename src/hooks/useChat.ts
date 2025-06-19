@@ -26,7 +26,17 @@ export function useChat(characterId: string) {
     for (let i = 0; i < msgs.length; i++) {
       setMessages((prev) => [...prev, msgs[i]])
       if (i < msgs.length - 1) {
+        const typingId = `typing-${Date.now()}-${i}`
+        const typingMsg: ChatMessage = {
+          id: typingId,
+          role: 'npc',
+          type: 'TEXT',
+          content: '...',
+          typing: true,
+        }
+        setMessages((prev) => [...prev, typingMsg])
         await new Promise((res) => setTimeout(res, 1000))
+        setMessages((prev) => prev.filter((m) => m.id !== typingId))
       }
     }
   }

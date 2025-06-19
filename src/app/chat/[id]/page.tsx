@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { doc } from 'firebase/firestore'
@@ -21,15 +21,16 @@ export default function CharacterChatPage() {
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
 
+  useEffect(() => {
+    listRef.current?.scrollTo(0, listRef.current.scrollHeight)
+  }, [messages])
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!text.trim()) return
     send(text.trim())
     setText('')
     ;(document.activeElement as HTMLElement | null)?.blur()
-    setTimeout(() => {
-      listRef.current?.scrollTo(0, listRef.current.scrollHeight)
-    }, 50)
   }
 
   return (

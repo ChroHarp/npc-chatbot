@@ -9,4 +9,5 @@ export interface ChatMessage {
   avatarX?: number
   avatarY?: number
   avatarScale?: number
+  typing?: boolean
 }
