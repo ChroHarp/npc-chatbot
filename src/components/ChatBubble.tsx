@@ -1,6 +1,7 @@
 'use client'
 import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import type { ChatMessage } from '@/types/chat'
 
@@ -29,34 +30,36 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
               onClick={() => setShowImage(true)}
               unoptimized
             />
-            {showImage && (
-              <div
-                className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
-                onClick={() => setShowImage(false)}
-              >
+            {showImage &&
+              createPortal(
                 <div
-                  className="relative max-w-full max-h-full"
-                  onClick={(e) => e.stopPropagation()}
+                  className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
+                  onClick={() => setShowImage(false)}
                 >
-                  <button
-                    className="absolute top-2 right-2 text-white text-2xl z-10"
-                    onClick={() => setShowImage(false)}
+                  <div
+                    className="relative max-w-full max-h-full"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    ×
-                  </button>
-                  <TransformWrapper>
-                    <TransformComponent wrapperClass="max-h-screen max-w-screen">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={message.content}
-                        alt="image"
-                        className="max-h-screen max-w-screen"
-                      />
-                    </TransformComponent>
-                  </TransformWrapper>
-                </div>
-              </div>
-            )}
+                    <button
+                      className="absolute top-2 right-2 text-white text-2xl z-10"
+                      onClick={() => setShowImage(false)}
+                    >
+                      ×
+                    </button>
+                    <TransformWrapper>
+                      <TransformComponent wrapperClass="max-h-screen max-w-screen">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={message.content}
+                          alt="image"
+                          className="max-h-screen max-w-screen"
+                        />
+                      </TransformComponent>
+                    </TransformWrapper>
+                  </div>
+                </div>,
+                document.body,
+              )}
           </>
         )
       case 'YOUTUBE':
