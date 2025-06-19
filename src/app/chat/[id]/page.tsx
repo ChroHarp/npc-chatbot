@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { doc } from 'firebase/firestore'
@@ -21,20 +21,39 @@ export default function CharacterChatPage() {
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
 
+  function smoothScroll(node: HTMLElement, duration = 800) {
+    const start = node.scrollTop
+    const end = node.scrollHeight - node.clientHeight
+    const change = end - start
+    const startTime = performance.now()
+
+    function animate(now: number) {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      node.scrollTop = start + change * progress
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+
+    requestAnimationFrame(animate)
+  }
+
+  useEffect(() => {
+    const node = listRef.current
+    if (!node) return
+    smoothScroll(node, 1000)
+  }, [messages])
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!text.trim()) return
     send(text.trim())
     setText('')
     ;(document.activeElement as HTMLElement | null)?.blur()
-    setTimeout(() => {
-      listRef.current?.scrollTo(0, listRef.current.scrollHeight)
-    }, 50)
   }
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-teal-50 dark:bg-neutral-950">
-      <header className="p-4 border-b flex justify-between items-center bg-teal-600 text-white">
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
+      <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
         <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
         <button className="text-sm text-white" onClick={clear}>
           重設對話
@@ -57,7 +76,10 @@ export default function CharacterChatPage() {
           </div>
         </div>
       )}
-      <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-2 pb-28">
+      <div
+        ref={listRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2 pb-28 scroll-smooth"
+      >
         {messages.map((m: ChatMessage) => (
           <ChatBubble key={m.id} message={m} />
         ))}
@@ -68,8 +90,9 @@ export default function CharacterChatPage() {
         onSubmit={handleSubmit}
         className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
       >
-        <textarea
-          className="chat-textarea"
+        <input
+          type="text"
+          className="chat-input"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />

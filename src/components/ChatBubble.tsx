@@ -1,12 +1,19 @@
 'use client'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import type { ChatMessage } from '@/types/chat'
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user'
   const [showImage, setShowImage] = useState(false)
+  useEffect(() => {
+    if (showImage) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+  }, [showImage])
 
   function renderContent() {
     switch (message.type) {
@@ -24,7 +31,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
             />
             {showImage && (
               <div
-                className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center"
                 onClick={() => setShowImage(false)}
               >
                 <div
@@ -39,6 +46,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
                   </button>
                   <TransformWrapper>
                     <TransformComponent wrapperClass="max-h-screen max-w-screen">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={message.content}
                         alt="image"
@@ -68,7 +76,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 mb-3`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} gap-2 mb-3 float-in`}>
       {!isUser && message.avatarUrl && (
         <div className="relative w-8 h-8 overflow-hidden rounded-full self-end flex-shrink-0">
           <Image
@@ -85,13 +93,15 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
       )}
       <div className="max-w-[70%]">
         <div
-          className={`px-3 py-2 rounded-lg text-sm break-words ${
-            isUser ? 'bg-teal-600 text-white' : 'bg-gray-200 dark:bg-neutral-800'
-          }`}
+          className={`px-4 py-3 rounded-xl shadow-md text-sm break-words ${
+            isUser
+              ? 'bg-gradient-to-br from-blue-50 via-blue-100 to-white text-gray-800'
+              : 'bg-gradient-to-br from-green-50 via-green-100 to-white text-gray-800'
+          } ${message.typing ? 'animate-pulse' : ''}`}
         >
-          {renderContent()}
+          {message.typing ? <span className="tracking-widest">...</span> : renderContent()}
         </div>
-        {message.timestamp && (
+        {message.timestamp && !message.typing && (
           <time className="block mt-1 text-xs text-gray-500 text-right">
             {new Date(message.timestamp).toLocaleTimeString()}
           </time>
