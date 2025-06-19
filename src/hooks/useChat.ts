@@ -35,7 +35,7 @@ export function useChat(characterId: string) {
           typing: true,
         }
         setMessages((prev) => [...prev, typingMsg])
-        await new Promise((res) => setTimeout(res, 1000))
+        await new Promise((res) => setTimeout(res, 1500))
         setMessages((prev) => prev.filter((m) => m.id !== typingId))
       }
     }
