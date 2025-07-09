@@ -16,6 +16,28 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Database Setup / 資料庫設定
+
+1. Create a new project in [Firebase](https://console.firebase.google.com) and enable **Firestore Database**.
+2. In the project root, create a file named `.env.local` with the following content:
+
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
+
+3. Install dependencies and run the development server:
+
+```bash
+npm install
+npm run dev
+```
+
+設定完成後，瀏覽器開啟 [http://localhost:3000](http://localhost:3000) 即可使用專案。
+
 ### Admin Characters Page
 
 Visit `/admin/characters` to manage NPC roles. Here you can add new characters,
