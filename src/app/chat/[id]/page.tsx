@@ -32,6 +32,10 @@ export default function CharacterChatPage() {
     if (!text.trim()) return
     send(text.trim())
     setText('')
+    const target = (e.target as HTMLFormElement).querySelector('textarea')
+    if (target) {
+      target.style.height = '40px'
+    }
     ;(document.activeElement as HTMLElement | null)?.blur()
   }
 
@@ -74,11 +78,22 @@ export default function CharacterChatPage() {
         onSubmit={handleSubmit}
         className="sticky bottom-0 bg-white dark:bg-neutral-900 p-4 flex gap-2 border-t"
       >
-        <input
-          type="text"
-          className="chat-input"
+        <textarea
+          className="chat-input resize-none overflow-y-auto"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              handleSubmit(e)
+            }
+          }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement
+            target.style.height = '40px'
+            target.style.height = `${Math.min(target.scrollHeight, 120)}px`
+          }}
+          rows={1}
         />
         <button
           type="submit"

@@ -74,7 +74,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
           </div>
         )
       default:
-        return <span>{message.content}</span>
+        return <span className="whitespace-pre-wrap">{message.content}</span>
     }
   }
 

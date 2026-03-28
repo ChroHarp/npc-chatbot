@@ -373,9 +373,15 @@ export default function EditCharacterPage() {
                   >
                     <span className="cursor-move select-none">⋮⋮</span>
                     {res.type === 'text' ? (
-                      <input
-                        className="border rounded px-2 py-1 flex-1"
+                      <textarea
+                        className="border rounded px-2 py-1 flex-1 resize-y min-h-[40px]"
                         value={res.value as string}
+                        rows={1}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement
+                          target.style.height = 'auto'
+                          target.style.height = `${target.scrollHeight}px`
+                        }}
                         onChange={(e) => {
                           setRules((r) =>
                             r.map((rr, idx) => {
