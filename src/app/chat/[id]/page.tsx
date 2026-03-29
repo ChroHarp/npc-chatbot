@@ -7,17 +7,13 @@ import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
 import { ChatBubble } from '@/components/ChatBubble'
+import { ChatSetup } from '@/components/ChatSetup'
 import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
-export default function CharacterChatPage() {
-  const { id } = useParams<{ id: string }>()
-  const characterId = id || 'default'
-  const [value] = useDocument(
-    characterId ? doc(db, 'characters', characterId) : undefined,
-  )
-  const data = value?.data() as CharacterDoc | undefined
-  const { messages, send, clear, loading, error } = useChat(characterId)
+// Separated so useChat is only mounted after setup is complete
+function ChatView({ characterId, data }: { characterId: string; data: CharacterDoc | undefined }) {
+  const { messages, send, loading, error } = useChat(characterId)
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
 
@@ -33,20 +29,12 @@ export default function CharacterChatPage() {
     send(text.trim())
     setText('')
     const target = (e.target as HTMLFormElement).querySelector('textarea')
-    if (target) {
-      target.style.height = '40px'
-    }
+    if (target) target.style.height = '40px'
     ;(document.activeElement as HTMLElement | null)?.blur()
   }
 
   return (
-    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
-      <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
-        <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
-        <button className="text-sm text-white" onClick={clear}>
-          重設對話
-        </button>
-      </header>
+    <>
       {data?.avatarUrl && (
         <div className="flex justify-center p-4">
           <div className="relative w-4/5 aspect-square overflow-hidden rounded-lg">
@@ -95,14 +83,61 @@ export default function CharacterChatPage() {
           }}
           rows={1}
         />
-        <button
-          type="submit"
-          className="send-button"
-          disabled={!text.trim()}
-        >
+        <button type="submit" className="send-button" disabled={!text.trim()}>
           送出
         </button>
       </form>
+    </>
+  )
+}
+
+export default function CharacterChatPage() {
+  const { id } = useParams<{ id: string }>()
+  const characterId = id || 'default'
+  const [value] = useDocument(
+    characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
+  )
+  const data = value?.data() as CharacterDoc | undefined
+
+  // null = checking localStorage, false = needs setup, true = ready
+  const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setSetupComplete(!!localStorage.getItem(`conversationId-${characterId}`))
+  }, [characterId])
+
+  function handleClear() {
+    localStorage.removeItem(`conversationId-${characterId}`)
+    localStorage.removeItem(`taskId-${characterId}`)
+    setSetupComplete(false)
+  }
+
+  const characterLoaded = characterId === 'default' || !!data
+
+  return (
+    <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
+      <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
+        <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
+        {setupComplete && (
+          <button className="text-sm text-white" onClick={handleClear}>
+            重設對話
+          </button>
+        )}
+      </header>
+
+      {setupComplete === null ? (
+        // Checking localStorage — avoid flash of setup screen
+        <div className="flex-1" />
+      ) : !setupComplete ? (
+        <ChatSetup
+          characterId={characterId}
+          characterTasks={data?.tasks ?? []}
+          characterLoaded={characterLoaded}
+          onComplete={() => setSetupComplete(true)}
+        />
+      ) : (
+        <ChatView characterId={characterId} data={data} />
+      )}
     </div>
   )
 }
