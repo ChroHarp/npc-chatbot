@@ -6,6 +6,7 @@ import { doc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
+import Link from 'next/link'
 import { ChatBubble } from '@/components/ChatBubble'
 import { ChatSetup } from '@/components/ChatSetup'
 import type { ChatMessage } from '@/types/chat'
@@ -140,7 +141,12 @@ export default function CharacterChatPage() {
             </span>
           )}
         </div>
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end items-center gap-3">
+          {teamCode && (
+            <Link href="/inventory" className="text-sm text-white/80 shrink-0">
+              背包
+            </Link>
+          )}
           {setupComplete && (
             <button className="text-sm text-white shrink-0" onClick={handleClear}>
               重設任務
