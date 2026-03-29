@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { ChatMessage } from '@/types/chat'
 import { auth, db } from '@/libs/firebase'
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, deleteField } from 'firebase/firestore'
 
 interface InitResponse {
   conversationId: string
@@ -45,69 +45,84 @@ export function useChat(characterId: string) {
 
   const init = useCallback(
     async (force?: boolean) => {
-      const localId = force ? null : localStorage.getItem(storageKey)
       try {
         setLoading(true)
         setError(null)
 
-        if (!localId) {
-          const teamCode = localStorage.getItem('teamCode')
-          const uid = auth.currentUser?.uid ?? null
+        const teamCode = localStorage.getItem('teamCode')
+        const uid = auth.currentUser?.uid ?? null
 
-          // Check if this team already has a shared conversation for this character
-          if (teamCode && !force) {
-            const teamSnap = await getDoc(doc(db, 'teams', teamCode))
-            const teamConvId = (
-              teamSnap.data()?.conversations as Record<string, string> | undefined
-            )?.[characterId]
-            if (teamConvId) {
-              localStorage.setItem(storageKey, teamConvId)
-              setConversationId(teamConvId)
-              const res = await fetch(`/api/chat/history?conversationId=${teamConvId}`)
-              if (!res.ok) {
-                // Conversation was deleted — create fresh one below
+        if (!force && teamCode) {
+          // Team mode: team doc is the source of truth — always check it first,
+          // regardless of what's cached in localStorage
+          const teamSnap = await getDoc(doc(db, 'teams', teamCode))
+          const teamConvId = (
+            teamSnap.data()?.conversations as Record<string, string> | undefined
+          )?.[characterId]
+
+          if (teamConvId) {
+            localStorage.setItem(storageKey, teamConvId)
+            setConversationId(teamConvId)
+            const res = await fetch(`/api/chat/history?conversationId=${teamConvId}`)
+            if (!res.ok) {
+              if (res.status === 404) {
+                // Shared conversation was deleted — clear and create a new one
                 localStorage.removeItem(storageKey)
-              } else {
-                const data: HistoryResponse = await res.json()
-                setMessages(data.messages || [])
-                return
+                try {
+                  await updateDoc(doc(db, 'teams', teamCode), {
+                    [`conversations.${characterId}`]: deleteField(),
+                  })
+                } catch {}
+                return init(true)
               }
+              throw new Error('history failed')
             }
+            const data: HistoryResponse = await res.json()
+            setMessages(data.messages || [])
+            return
           }
+          // Team has no conversation for this character yet — create one below
+        } else if (!force) {
+          // No team: use localStorage cache normally
+          const localId = localStorage.getItem(storageKey)
+          if (localId) {
+            setConversationId(localId)
+            const res = await fetch(`/api/chat/history?conversationId=${localId}`)
+            if (!res.ok) {
+              if (res.status === 404) {
+                localStorage.removeItem(storageKey)
+                setConversationId(null)
+                return init(true)
+              }
+              throw new Error('history failed')
+            }
+            const data: HistoryResponse = await res.json()
+            setMessages(data.messages || [])
+            return
+          }
+        }
 
-          // Create new conversation
-          const params = new URLSearchParams({ characterId })
-          if (teamCode) params.set('teamCode', teamCode)
-          if (uid) params.set('uid', uid)
-          const res = await fetch(`/api/chat/init?${params}`)
-          if (!res.ok) throw new Error('init failed')
-          const data: InitResponse = await res.json()
-          localStorage.setItem(storageKey, data.conversationId)
-          setConversationId(data.conversationId)
-          setMessages([])
+        // Create new conversation (no team conversation found, or force reset)
+        const params = new URLSearchParams({ characterId })
+        if (teamCode) params.set('teamCode', teamCode)
+        if (uid) params.set('uid', uid)
+        const res = await fetch(`/api/chat/init?${params}`)
+        if (!res.ok) throw new Error('init failed')
+        const data: InitResponse = await res.json()
+        localStorage.setItem(storageKey, data.conversationId)
+        setConversationId(data.conversationId)
+        setMessages([])
 
-          // Register this conversation in the team document so teammates can share it
-          if (teamCode) {
+        // Register in team doc so all teammates share this conversation
+        if (teamCode) {
+          try {
             await updateDoc(doc(db, 'teams', teamCode), {
               [`conversations.${characterId}`]: data.conversationId,
             })
-          }
-
-          void appendMessagesSequentially(data.messages || [])
-        } else {
-          setConversationId(localId)
-          const res = await fetch(`/api/chat/history?conversationId=${localId}`)
-          if (!res.ok) {
-            if (res.status === 404) {
-              localStorage.removeItem(storageKey)
-              setConversationId(null)
-              return init(true)
-            }
-            throw new Error('history failed')
-          }
-          const data: HistoryResponse = await res.json()
-          setMessages(data.messages || [])
+          } catch {}
         }
+
+        void appendMessagesSequentially(data.messages || [])
       } catch {
         setError('載入失敗')
       } finally {

@@ -99,7 +99,7 @@ export default function CharacterChatPage() {
     characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
   )
   const data = value?.data() as CharacterDoc | undefined
-  const { teamCode } = useTeam()
+  const { teamCode, leaveTeam } = useTeam()
 
   // null = checking, false = needs setup, true = ready for chat
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
@@ -115,16 +115,15 @@ export default function CharacterChatPage() {
     const code = localStorage.getItem('teamCode')
     localStorage.removeItem(`conversationId-${characterId}`)
     localStorage.removeItem(`taskId-${characterId}`)
-    // Remove shared conversation from team so all members start fresh
+    // Remove shared conversation from team so all members restart fresh
     if (code) {
       try {
         await updateDoc(doc(db, 'teams', code), {
           [`conversations.${characterId}`]: deleteField(),
         })
-      } catch {
-        // Non-critical — proceed regardless
-      }
+      } catch {}
     }
+    leaveTeam() // also clears teamCode from localStorage
     setSetupComplete(false)
   }
 
@@ -132,18 +131,22 @@ export default function CharacterChatPage() {
 
   return (
     <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
-      <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
-        <div className="flex flex-col">
-          <h1 className="font-semibold text-lg leading-tight">{data?.name || 'NPC Chat'}</h1>
+      <header className="p-4 border-b flex items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
+        <h1 className="font-semibold text-lg flex-1 truncate">{data?.name || 'NPC Chat'}</h1>
+        <div className="flex-1 flex justify-center">
           {teamCode && (
-            <span className="text-xs text-teal-100">小隊 {teamCode}</span>
+            <span className="font-mono font-bold tracking-widest text-sm bg-white/20 px-2 py-0.5 rounded">
+              {teamCode}
+            </span>
           )}
         </div>
-        {setupComplete && (
-          <button className="text-sm text-white shrink-0" onClick={handleClear}>
-            重設任務
-          </button>
-        )}
+        <div className="flex-1 flex justify-end">
+          {setupComplete && (
+            <button className="text-sm text-white shrink-0" onClick={handleClear}>
+              重設任務
+            </button>
+          )}
+        </div>
       </header>
 
       {setupComplete === null ? (
