@@ -61,9 +61,9 @@ conversations/{conversationId}/messages/{messageId}
 | `src/app/api/chat/history/route.ts` | 改用 `getMessages()` |
 
 ### 驗證方式
-- [ ] 開始對話、傳送訊息、確認顯示正常
-- [ ] 重啟 dev server，重新載入頁面，確認對話紀錄仍在
-- [ ] 在 Firebase Console 確認 `conversations` collection 和 `messages` subcollection 有資料
+- [x] 開始對話、傳送訊息、確認顯示正常
+- [x] 重啟 dev server，重新載入頁面，確認對話紀錄仍在
+- [x] 在 Firebase Console 確認 `conversations` collection 和 `messages` subcollection 有資料
 
 > **注意**：Firestore 安全規則需允許 `conversations` collection 讀寫（server 端使用 client SDK）。
 
