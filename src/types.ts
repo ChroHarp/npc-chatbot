@@ -37,4 +37,6 @@ export interface TeamDoc {
   taskProgress: Record<string, 'locked' | 'active' | 'completed'>
   /** Shared conversations per character: characterId → conversationId */
   conversations?: Record<string, string>
+  /** Firestore TTL field — document auto-deleted 48h after team creation */
+  expireAt: import('firebase/firestore').Timestamp
 }
