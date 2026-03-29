@@ -56,6 +56,14 @@ export function useChat(characterId: string) {
           // Team mode: team doc is the source of truth — always check it first,
           // regardless of what's cached in localStorage
           const teamSnap = await getDoc(doc(db, 'teams', teamCode))
+
+          if (!teamSnap.exists()) {
+            // Team was deleted by admin — clear stale teamCode so user can re-join
+            localStorage.removeItem('teamCode')
+            setError('此小隊已不存在，請按「重設任務」重新加入')
+            return
+          }
+
           const teamConvId = (
             teamSnap.data()?.conversations as Record<string, string> | undefined
           )?.[characterId]
