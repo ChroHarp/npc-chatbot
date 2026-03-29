@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { conversations } from './store'
+import { getConversation, addMessages } from './store'
 import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   if (!conversationId || typeof message !== 'string') {
     return new NextResponse('Bad Request', { status: 400 })
   }
-  const convo = conversations.get(conversationId)
+  const convo = await getConversation(conversationId)
   if (!convo) return new NextResponse('Not Found', { status: 404 })
 
   const userMsg: ChatMessage = {
@@ -18,7 +18,6 @@ export async function POST(req: Request) {
     content: message,
     timestamp: new Date().toISOString(),
   }
-  convo.messages.push(userMsg)
 
   const character = await getCharacter(convo.characterId)
   let responses = character.defaultResponses
@@ -42,6 +41,7 @@ export async function POST(req: Request) {
     avatarScale: character.avatarScale,
     timestamp: new Date().toISOString(),
   }))
-  convo.messages.push(...npcReplies)
+
+  await addMessages(conversationId, [userMsg, ...npcReplies])
   return NextResponse.json({ messages: npcReplies })
 }

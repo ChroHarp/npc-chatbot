@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { conversations } from '../store'
+import { createConversation, addMessages } from '../store'
 import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 
@@ -19,6 +19,7 @@ export async function GET(req: Request) {
     avatarScale: character.avatarScale,
     timestamp: new Date().toISOString(),
   }))
-  conversations.set(conversationId, { characterId, messages, counters: {} })
+  await createConversation(conversationId, characterId)
+  await addMessages(conversationId, messages)
   return NextResponse.json({ conversationId, messages })
 }

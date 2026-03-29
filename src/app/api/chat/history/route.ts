@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { conversations } from '../store'
+import { getMessages, getConversation } from '../store'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('conversationId') || ''
-  const convo = conversations.get(id)
+  const convo = await getConversation(id)
   if (!convo) return new NextResponse('Not Found', { status: 404 })
-  return NextResponse.json({ messages: convo.messages })
+  const messages = await getMessages(id)
+  return NextResponse.json({ messages })
 }
