@@ -6,5 +6,6 @@ export async function deleteTeam(teamCode: string) {
 }
 
 export async function resetTeamProgress(teamCode: string) {
-  await updateDoc(doc(db, 'teams', teamCode), { taskProgress: {} })
+  // Clear both task progress and shared conversations so all members restart fresh
+  await updateDoc(doc(db, 'teams', teamCode), { taskProgress: {}, conversations: {} })
 }
