@@ -2,13 +2,12 @@
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { doc, updateDoc, deleteField } from 'firebase/firestore'
+import { doc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
 import { ChatBubble } from '@/components/ChatBubble'
 import { ChatSetup } from '@/components/ChatSetup'
-import { useTeam } from '@/hooks/useTeam'
 import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
@@ -99,31 +98,32 @@ export default function CharacterChatPage() {
     characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
   )
   const data = value?.data() as CharacterDoc | undefined
-  const { teamCode, leaveTeam } = useTeam()
 
-  // null = checking, false = needs setup, true = ready for chat
+  // Manage teamCode locally so it updates immediately when setup completes
+  const [teamCode, setTeamCode] = useState<string | null>(null)
+  // null = checking localStorage, false = needs setup, true = ready for chat
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
 
   useEffect(() => {
+    const storedTeam = localStorage.getItem('teamCode')
     const hasConversation = !!localStorage.getItem(`conversationId-${characterId}`)
-    const hasTeam = !!localStorage.getItem('teamCode')
-    // Skip setup if user already has a team or an existing conversation
-    setSetupComplete(hasConversation || hasTeam)
+    setTeamCode(storedTeam)
+    setSetupComplete(!!storedTeam || hasConversation)
   }, [characterId])
 
-  async function handleClear() {
-    const code = localStorage.getItem('teamCode')
+  function handleSetupComplete(code: string) {
+    setTeamCode(code)
+    setSetupComplete(true)
+  }
+
+  function handleClear() {
+    // Only clear this user's local state — do NOT modify the team doc.
+    // Other team members keep their shared conversation; this user simply
+    // leaves the team and will re-join (or join a different one) via setup.
     localStorage.removeItem(`conversationId-${characterId}`)
     localStorage.removeItem(`taskId-${characterId}`)
-    // Remove shared conversation from team so all members restart fresh
-    if (code) {
-      try {
-        await updateDoc(doc(db, 'teams', code), {
-          [`conversations.${characterId}`]: deleteField(),
-        })
-      } catch {}
-    }
-    leaveTeam() // also clears teamCode from localStorage
+    localStorage.removeItem('teamCode')
+    setTeamCode(null)
     setSetupComplete(false)
   }
 
@@ -156,7 +156,7 @@ export default function CharacterChatPage() {
           characterId={characterId}
           characterTasks={data?.tasks ?? []}
           characterLoaded={characterLoaded}
-          onComplete={() => setSetupComplete(true)}
+          onComplete={handleSetupComplete}
         />
       ) : (
         <ChatView characterId={characterId} data={data} />

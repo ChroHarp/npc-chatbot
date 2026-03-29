@@ -10,7 +10,7 @@ interface Props {
   characterId: string
   characterTasks: string[]
   characterLoaded: boolean
-  onComplete: () => void
+  onComplete: (teamCode: string) => void
 }
 
 export function ChatSetup({ characterId, characterTasks, characterLoaded, onComplete }: Props) {
@@ -73,9 +73,9 @@ export function ChatSetup({ characterId, characterTasks, characterLoaded, onComp
   }
 
   function handleStart() {
-    if (!canStart) return
+    if (!canStart || !teamCode) return
     if (selectedTask) localStorage.setItem(`taskId-${characterId}`, selectedTask)
-    onComplete()
+    onComplete(teamCode)
   }
 
   if (!characterLoaded || !tasksLoaded) {
