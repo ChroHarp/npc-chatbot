@@ -1,6 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
+import { useState } from 'react'
 import { useCollection } from 'react-firebase-hooks/firestore'
 import { collection, orderBy, query } from 'firebase/firestore'
 import { db } from '@/libs/firebase'
@@ -13,6 +14,19 @@ type TeamRow = TeamDoc & { id: string }
 
 export default function TeamsListPage() {
   const [snap] = useCollection(query(collection(db, 'teams'), orderBy('createdAt', 'desc')))
+  const [cleaning, setCleaning] = useState(false)
+
+  async function handleCleanup() {
+    if (!confirm('刪除所有已過期（建立超過 48 小時）的小隊？')) return
+    setCleaning(true)
+    try {
+      const res = await fetch('/api/admin/cleanup-teams', { method: 'DELETE' })
+      const { deleted } = await res.json() as { deleted: number }
+      alert(`已刪除 ${deleted} 個過期小隊`)
+    } finally {
+      setCleaning(false)
+    }
+  }
   const teams: TeamRow[] = snap?.docs.map((d) => ({ id: d.id, ...(d.data() as TeamDoc) })) || []
 
   const columns: Column<TeamRow>[] = [
@@ -61,7 +75,16 @@ export default function TeamsListPage() {
 
   return (
     <div className="p-6 max-w-screen-lg mx-auto">
-      <h1 className="text-xl font-semibold mb-4">隊伍管理</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-semibold">隊伍管理</h1>
+        <button
+          onClick={handleCleanup}
+          disabled={cleaning}
+          className="px-3 py-1.5 text-sm border border-red-400 text-red-500 rounded disabled:opacity-50"
+        >
+          {cleaning ? '清理中...' : '清理過期小隊'}
+        </button>
+      </div>
       <DataTable columns={columns} data={teams} />
     </div>
   )
