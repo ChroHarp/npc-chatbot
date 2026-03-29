@@ -69,7 +69,7 @@ conversations/{conversationId}/messages/{messageId}
 
 ---
 
-## Phase 1：組隊系統 🚧 進行中（branch: `phase/1-team-system`）
+## Phase 1：組隊系統 ✅ 已完成（branch: `phase/1-team-system`）
 
 **目的**：玩家建立/加入隊伍（4 位數 ID），共享遊戲進度。
 
@@ -112,10 +112,17 @@ conversations/{conversationId}      // 新增欄位
 | `src/app/admin/page.tsx` | 新增「Teams」連結 |
 
 ### 驗證方式
-- [ ] 兩支手機：A 建立隊伍取得代碼，B 輸入代碼加入 → 雙方顯示為隊友
-- [ ] B 加入時 A 即時看到成員數更新（Firestore real-time）
-- [ ] 重新載入頁面，teamCode 從 localStorage 恢復
-- [ ] Admin 頁面可列出與管理隊伍
+- [x] 兩支手機：A 建立隊伍取得代碼，B 輸入代碼加入 → 雙方顯示為隊友
+- [x] B 加入時 A 即時看到成員數更新（Firestore real-time）
+- [x] 重新載入頁面，teamCode 從 localStorage 恢復
+- [x] Admin 頁面可列出與管理隊伍
+
+**實作期間額外完成：**
+- 進入角色對話時跳出小隊設定（任務選擇 + 建立/加入小隊），而非首頁
+- 同小隊共享對話內容（team doc 記錄 characterId → conversationId）
+- 小隊刪除後自動偵測並提示重新加入
+- 小隊 48 小時後自動過期（`expireAt` TTL 欄位）+ Admin 手動清理按鈕
+- 重設任務進度同時清除共享對話紀錄
 
 > **Firestore 規則**：需在現有規則加上 `teams` collection：
 > ```
