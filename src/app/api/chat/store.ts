@@ -15,9 +15,13 @@ import type { ChatMessage } from '@/types/chat'
 export async function createConversation(
   conversationId: string,
   characterId: string,
+  teamCode: string | null = null,
+  uid: string | null = null,
 ): Promise<void> {
   await setDoc(doc(db, 'conversations', conversationId), {
     characterId,
+    teamCode,
+    uid,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -25,10 +29,15 @@ export async function createConversation(
 
 export async function getConversation(
   conversationId: string,
-): Promise<{ characterId: string } | null> {
+): Promise<{ characterId: string; teamCode: string | null; uid: string | null } | null> {
   const snap = await getDoc(doc(db, 'conversations', conversationId))
   if (!snap.exists()) return null
-  return { characterId: snap.data().characterId as string }
+  const data = snap.data()
+  return {
+    characterId: data.characterId as string,
+    teamCode: (data.teamCode as string | null) ?? null,
+    uid: (data.uid as string | null) ?? null,
+  }
 }
 
 export async function addMessages(

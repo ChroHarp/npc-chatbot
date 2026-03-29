@@ -8,10 +8,12 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import { db } from "@/libs/firebase";
 import type { CharacterDoc } from "@/types";
 import { characters as defaultCharacters } from "@/data/characters";
+import { useTeam } from "@/hooks/useTeam";
 
 export default function HomePage() {
   const router = useRouter();
   const [value] = useCollection(collection(db, "characters"));
+  const { teamCode } = useTeam();
 
   const characters = [
     {
@@ -47,6 +49,15 @@ export default function HomePage() {
           管理模式
         </button>
       </div>
+      <Link
+        href="/team"
+        className="flex items-center justify-between p-3 border rounded hover:bg-gray-50"
+      >
+        <span className="text-sm text-gray-600">
+          {teamCode ? `隊伍代碼：${teamCode}` : '加入 / 建立隊伍'}
+        </span>
+        <span className="text-xs text-teal-500">{teamCode ? '已加入' : '→'}</span>
+      </Link>
       <div className="flex flex-col gap-3">
         {characters.map((ch) => (
           <Link

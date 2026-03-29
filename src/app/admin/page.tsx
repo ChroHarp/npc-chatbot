@@ -12,6 +12,9 @@ export default function AdminHomePage() {
       <Link href="/admin/tasks" className="text-blue-500 underline">
         任務管理
       </Link>
+      <Link href="/admin/teams" className="text-blue-500 underline">
+        隊伍管理
+      </Link>
     </div>
   )
 }

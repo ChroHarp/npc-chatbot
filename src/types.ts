@@ -29,3 +29,10 @@ export interface TaskDoc {
   description?: string
   createdAt?: import('firebase/firestore').Timestamp
 }
+
+export interface TeamDoc {
+  createdAt: import('firebase/firestore').Timestamp
+  createdBy: string
+  members: string[]
+  taskProgress: Record<string, 'locked' | 'active' | 'completed'>
+}

@@ -69,7 +69,7 @@ conversations/{conversationId}/messages/{messageId}
 
 ---
 
-## Phase 1：組隊系統
+## Phase 1：組隊系統 🚧 進行中（branch: `phase/1-team-system`）
 
 **目的**：玩家建立/加入隊伍（4 位數 ID），共享遊戲進度。
 
@@ -116,6 +116,13 @@ conversations/{conversationId}      // 新增欄位
 - [ ] B 加入時 A 即時看到成員數更新（Firestore real-time）
 - [ ] 重新載入頁面，teamCode 從 localStorage 恢復
 - [ ] Admin 頁面可列出與管理隊伍
+
+> **Firestore 規則**：需在現有規則加上 `teams` collection：
+> ```
+> match /teams/{teamCode} {
+>   allow read, write: if true;
+> }
+> ```
 
 ---
 

@@ -6,6 +6,9 @@ import { getCharacter } from '@/data/characters'
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const characterId = searchParams.get('characterId') || 'default'
+  const teamCode = searchParams.get('teamCode') || null
+  const uid = searchParams.get('uid') || null
+
   const character = await getCharacter(characterId)
   const conversationId = crypto.randomUUID()
   const messages: ChatMessage[] = character.greeting.map((g) => ({
@@ -19,7 +22,7 @@ export async function GET(req: Request) {
     avatarScale: character.avatarScale,
     timestamp: new Date().toISOString(),
   }))
-  await createConversation(conversationId, characterId)
+  await createConversation(conversationId, characterId, teamCode, uid)
   await addMessages(conversationId, messages)
   return NextResponse.json({ conversationId, messages })
 }

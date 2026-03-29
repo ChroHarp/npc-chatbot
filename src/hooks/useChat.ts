@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import type { ChatMessage } from '@/types/chat'
+import { auth } from '@/libs/firebase'
 
 interface InitResponse {
   conversationId: string
@@ -48,7 +49,12 @@ export function useChat(characterId: string) {
         setLoading(true)
         setError(null)
         if (!id) {
-          const res = await fetch(`/api/chat/init?characterId=${characterId}`)
+          const teamCode = localStorage.getItem('teamCode')
+          const uid = auth.currentUser?.uid ?? null
+          const params = new URLSearchParams({ characterId })
+          if (teamCode) params.set('teamCode', teamCode)
+          if (uid) params.set('uid', uid)
+          const res = await fetch(`/api/chat/init?${params}`)
           if (!res.ok) throw new Error('init failed')
           const data: InitResponse = await res.json()
           localStorage.setItem(storageKey, data.conversationId)
