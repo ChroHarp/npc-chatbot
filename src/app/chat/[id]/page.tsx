@@ -2,12 +2,13 @@
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
-import { doc } from 'firebase/firestore'
+import { doc, updateDoc, deleteField } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
 import { ChatBubble } from '@/components/ChatBubble'
 import { ChatSetup } from '@/components/ChatSetup'
+import { useTeam } from '@/hooks/useTeam'
 import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
@@ -98,17 +99,32 @@ export default function CharacterChatPage() {
     characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
   )
   const data = value?.data() as CharacterDoc | undefined
+  const { teamCode } = useTeam()
 
-  // null = checking localStorage, false = needs setup, true = ready
+  // null = checking, false = needs setup, true = ready for chat
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null)
 
   useEffect(() => {
-    setSetupComplete(!!localStorage.getItem(`conversationId-${characterId}`))
+    const hasConversation = !!localStorage.getItem(`conversationId-${characterId}`)
+    const hasTeam = !!localStorage.getItem('teamCode')
+    // Skip setup if user already has a team or an existing conversation
+    setSetupComplete(hasConversation || hasTeam)
   }, [characterId])
 
-  function handleClear() {
+  async function handleClear() {
+    const code = localStorage.getItem('teamCode')
     localStorage.removeItem(`conversationId-${characterId}`)
     localStorage.removeItem(`taskId-${characterId}`)
+    // Remove shared conversation from team so all members start fresh
+    if (code) {
+      try {
+        await updateDoc(doc(db, 'teams', code), {
+          [`conversations.${characterId}`]: deleteField(),
+        })
+      } catch {
+        // Non-critical — proceed regardless
+      }
+    }
     setSetupComplete(false)
   }
 
@@ -117,16 +133,20 @@ export default function CharacterChatPage() {
   return (
     <div className="h-dvh flex flex-col max-w-md mx-auto w-full bg-gradient-to-b from-white to-teal-50 dark:bg-neutral-950">
       <header className="p-4 border-b flex justify-between items-center bg-gradient-to-r from-teal-400 to-teal-500 text-white shadow">
-        <h1 className="font-semibold text-lg">{data?.name || 'NPC Chat'}</h1>
+        <div className="flex flex-col">
+          <h1 className="font-semibold text-lg leading-tight">{data?.name || 'NPC Chat'}</h1>
+          {teamCode && (
+            <span className="text-xs text-teal-100">小隊 {teamCode}</span>
+          )}
+        </div>
         {setupComplete && (
-          <button className="text-sm text-white" onClick={handleClear}>
-            重設對話
+          <button className="text-sm text-white shrink-0" onClick={handleClear}>
+            重設任務
           </button>
         )}
       </header>
 
       {setupComplete === null ? (
-        // Checking localStorage — avoid flash of setup screen
         <div className="flex-1" />
       ) : !setupComplete ? (
         <ChatSetup

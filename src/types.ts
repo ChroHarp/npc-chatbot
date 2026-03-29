@@ -35,4 +35,6 @@ export interface TeamDoc {
   createdBy: string
   members: string[]
   taskProgress: Record<string, 'locked' | 'active' | 'completed'>
+  /** Shared conversations per character: characterId → conversationId */
+  conversations?: Record<string, string>
 }
