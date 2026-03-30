@@ -66,7 +66,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
         return (
           <div className="flex items-center gap-2">
             <span>📦</span>
-            <span>收到：<strong>{message.content}</strong></span>
+            <span>給予：<strong>{message.content}</strong></span>
           </div>
         )
       case 'YOUTUBE':

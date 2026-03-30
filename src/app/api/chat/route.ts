@@ -38,8 +38,20 @@ export async function POST(req: Request) {
       if (convo.teamCode) {
         const itemId = resp.value as string
         try {
-          const itemSnap = await getDoc(doc(db, 'items', itemId))
-          const itemName = itemSnap.exists() ? (itemSnap.data().name as string) : '未知物品'
+          const [itemSnap, teamSnap] = await Promise.all([
+            getDoc(doc(db, 'items', itemId)),
+            getDoc(doc(db, 'teams', convo.teamCode)),
+          ])
+          if (!itemSnap.exists()) continue
+          const item = itemSnap.data()
+          const itemName = item.name as string
+          const inventory = (teamSnap.data()?.inventory ?? {}) as Record<string, number>
+          const current = inventory[itemId] ?? 0
+
+          // Respect stackable and maxPerTeam constraints
+          if (!item.stackable && current >= 1) continue
+          if (item.maxPerTeam != null && current >= item.maxPerTeam) continue
+
           await updateDoc(doc(db, 'teams', convo.teamCode), {
             [`inventory.${itemId}`]: increment(1),
           })
