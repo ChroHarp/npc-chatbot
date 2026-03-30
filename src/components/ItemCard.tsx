@@ -5,11 +5,15 @@ interface Props {
   id: string
   item: ItemDoc
   quantity: number
+  onClick?: () => void
 }
 
-export function ItemCard({ item, quantity }: Props) {
+export function ItemCard({ item, quantity, onClick }: Props) {
   return (
-    <div className="flex flex-col items-center gap-2 p-3 border rounded-lg bg-white relative">
+    <div
+      className={`flex flex-col items-center gap-2 p-3 border rounded-lg bg-white relative ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      onClick={onClick}
+    >
       {quantity > 1 && (
         <span className="absolute top-1 right-1 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-mono">
           {quantity}
