@@ -62,6 +62,13 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
               )}
           </>
         )
+      case 'ITEM':
+        return (
+          <div className="flex items-center gap-2">
+            <span>📦</span>
+            <span>收到：<strong>{message.content}</strong></span>
+          </div>
+        )
       case 'YOUTUBE':
         const id = message.content.split('v=')[1] || message.content
         return (
