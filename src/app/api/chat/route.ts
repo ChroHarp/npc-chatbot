@@ -3,10 +3,10 @@ import { getConversation, addMessages } from './store'
 import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 import { db } from '@/libs/firebase'
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, increment, deleteField } from 'firebase/firestore'
 
 export async function POST(req: Request) {
-  const { conversationId, message } = await req.json()
+  const { conversationId, message, itemId } = await req.json()
   if (!conversationId || typeof message !== 'string') {
     return new NextResponse('Bad Request', { status: 400 })
   }
@@ -23,12 +23,31 @@ export async function POST(req: Request) {
 
   const character = await getCharacter(convo.characterId)
   let responses = character.defaultResponses
+  let ruleMatched = false
   const lowerMsg = message.toLowerCase()
   for (let i = 0; i < character.rules.length; i++) {
     const rule = character.rules[i]
     if (rule.keywords.some((k) => lowerMsg.includes(k.toLowerCase()))) {
       responses = rule.responses
+      ruleMatched = true
       break
+    }
+  }
+
+  // If player used an item and a non-default rule matched, deduct the item
+  if (itemId && ruleMatched && convo.teamCode) {
+    try {
+      const teamRef = doc(db, 'teams', convo.teamCode)
+      const teamSnap = await getDoc(teamRef)
+      const inventory = (teamSnap.data()?.inventory ?? {}) as Record<string, number>
+      const current = inventory[itemId] ?? 0
+      if (current >= 1) {
+        await updateDoc(teamRef, {
+          [`inventory.${itemId}`]: current === 1 ? deleteField() : increment(-1),
+        })
+      }
+    } catch {
+      // Deduction failed silently — don't block the conversation
     }
   }
 

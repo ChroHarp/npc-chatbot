@@ -1,8 +1,8 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
-import { doc } from 'firebase/firestore'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { doc, getDoc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
@@ -13,10 +13,25 @@ import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
 // Separated so useChat is only mounted after setup is complete
-function ChatView({ characterId, data }: { characterId: string; data: CharacterDoc | undefined }) {
-  const { messages, send, loading, error } = useChat(characterId)
+function ChatView({ characterId, data, useItemId }: { characterId: string; data: CharacterDoc | undefined; useItemId?: string | null }) {
+  const { messages, send, loading, ready, error } = useChat(characterId)
+  const router = useRouter()
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
+  const autoSentRef = useRef(false)
+
+  // Auto-send "使用[itemName]" when navigated from inventory
+  useEffect(() => {
+    if (!useItemId || !ready || autoSentRef.current) return
+    autoSentRef.current = true
+    getDoc(doc(db, 'items', useItemId)).then((snap) => {
+      if (!snap.exists()) return
+      const itemName = snap.data().name as string
+      send(`使用${itemName}`, useItemId)
+      // Clean up URL param after sending
+      router.replace(`/chat/${characterId}`, { scroll: false })
+    })
+  }, [useItemId, ready, characterId, router, send])
 
   useEffect(() => {
     const node = listRef.current
@@ -94,7 +109,9 @@ function ChatView({ characterId, data }: { characterId: string; data: CharacterD
 
 export default function CharacterChatPage() {
   const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const characterId = id || 'default'
+  const useItemId = searchParams.get('useItem')
   const [value] = useDocument(
     characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
   )
@@ -143,7 +160,7 @@ export default function CharacterChatPage() {
         </div>
         <div className="flex-1 flex justify-end items-center gap-3">
           {teamCode && (
-            <Link href="/inventory" className="text-sm text-white/80 shrink-0">
+            <Link href={`/inventory?from=${characterId}`} className="text-sm text-white/80 shrink-0">
               背包
             </Link>
           )}
@@ -165,7 +182,7 @@ export default function CharacterChatPage() {
           onComplete={handleSetupComplete}
         />
       ) : (
-        <ChatView characterId={characterId} data={data} />
+        <ChatView characterId={characterId} data={data} useItemId={useItemId} />
       )}
     </div>
   )

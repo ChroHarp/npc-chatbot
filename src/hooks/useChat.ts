@@ -21,6 +21,7 @@ export function useChat(characterId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const storageKey = `conversationId-${characterId}`
 
@@ -135,6 +136,7 @@ export function useChat(characterId: string) {
         setError('載入失敗')
       } finally {
         setLoading(false)
+        setReady(true)
       }
     },
     [characterId, storageKey],
@@ -144,7 +146,7 @@ export function useChat(characterId: string) {
     init()
   }, [init])
 
-  async function send(text: string) {
+  async function send(text: string, itemId?: string) {
     if (!conversationId) return
     const local: ChatMessage = {
       id: String(Date.now()),
@@ -160,7 +162,7 @@ export function useChat(characterId: string) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, message: text }),
+        body: JSON.stringify({ conversationId, message: text, itemId }),
       })
       if (!res.ok) {
         if (res.status === 404) {
@@ -178,5 +180,5 @@ export function useChat(characterId: string) {
     }
   }
 
-  return { messages, send, loading, error }
+  return { messages, send, loading, ready, error }
 }
