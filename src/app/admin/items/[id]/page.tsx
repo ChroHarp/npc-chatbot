@@ -32,16 +32,17 @@ export default function EditItemPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!item) return
-    setName(item.name)
-    setDescription(item.description ?? '')
-    setCategory(item.category ?? '')
-    setStackable(item.stackable)
-    setMaxPerTeam(item.maxPerTeam != null ? String(item.maxPerTeam) : '')
-    setImageScale(item.imageScale ?? 1)
-    setImageX(item.imageX ?? 0)
-    setImageY(item.imageY ?? 0)
-  }, [item])
+    if (!snap?.exists()) return
+    const d = snap.data() as ItemDoc
+    setName(d.name)
+    setDescription(d.description ?? '')
+    setCategory(d.category ?? '')
+    setStackable(d.stackable)
+    setMaxPerTeam(d.maxPerTeam != null ? String(d.maxPerTeam) : '')
+    setImageScale(d.imageScale ?? 1)
+    setImageX(d.imageX ?? 0)
+    setImageY(d.imageY ?? 0)
+  }, [snap])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()

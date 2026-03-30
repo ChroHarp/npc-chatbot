@@ -49,8 +49,20 @@ export async function POST(req: Request) {
           const current = inventory[itemId] ?? 0
 
           // Respect stackable and maxPerTeam constraints
-          if (!item.stackable && current >= 1) continue
-          if (item.maxPerTeam != null && current >= item.maxPerTeam) continue
+          if ((!item.stackable && current >= 1) || (item.maxPerTeam != null && current >= item.maxPerTeam)) {
+            npcReplies.push({
+              id: crypto.randomUUID(),
+              role: 'npc',
+              type: 'TEXT',
+              content: `（已達「${itemName}」持有上限）`,
+              avatarUrl: character.avatarUrl,
+              avatarX: character.avatarX,
+              avatarY: character.avatarY,
+              avatarScale: character.avatarScale,
+              timestamp: new Date().toISOString(),
+            })
+            continue
+          }
 
           await updateDoc(doc(db, 'teams', convo.teamCode), {
             [`inventory.${itemId}`]: increment(1),
