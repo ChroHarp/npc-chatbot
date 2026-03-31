@@ -62,6 +62,29 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
               )}
           </>
         )
+      case 'ITEM':
+        return (
+          <div className="flex flex-col gap-2">
+            {message.itemImageUrl && (
+              <div className="relative w-32 h-32 overflow-hidden rounded-lg">
+                <Image
+                  src={message.itemImageUrl}
+                  alt={message.content}
+                  fill
+                  className="object-cover"
+                  style={{
+                    transform: `translate(${message.itemImageX ?? 0}%, ${message.itemImageY ?? 0}%) scale(${message.itemImageScale ?? 1})`,
+                  }}
+                  unoptimized
+                />
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span>📦</span>
+              <span>給予：<strong>{message.content}</strong></span>
+            </div>
+          </div>
+        )
       case 'YOUTUBE':
         const id = message.content.split('v=')[1] || message.content
         return (

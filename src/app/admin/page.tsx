@@ -15,6 +15,9 @@ export default function AdminHomePage() {
       <Link href="/admin/teams" className="text-blue-500 underline">
         隊伍管理
       </Link>
+      <Link href="/admin/items" className="text-blue-500 underline">
+        物件管理
+      </Link>
     </div>
   )
 }

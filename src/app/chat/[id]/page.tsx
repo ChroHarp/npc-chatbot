@@ -1,21 +1,39 @@
 'use client'
-import { useRef, useState, useEffect } from 'react'
+import { Suspense, useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useParams } from 'next/navigation'
-import { doc } from 'firebase/firestore'
+import { useParams, useSearchParams } from 'next/navigation'
+import { doc, getDoc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
 import type { CharacterDoc } from '@/types'
+import Link from 'next/link'
 import { ChatBubble } from '@/components/ChatBubble'
 import { ChatSetup } from '@/components/ChatSetup'
 import type { ChatMessage } from '@/types/chat'
 import { useChat } from '@/hooks/useChat'
 
 // Separated so useChat is only mounted after setup is complete
-function ChatView({ characterId, data }: { characterId: string; data: CharacterDoc | undefined }) {
-  const { messages, send, loading, error } = useChat(characterId)
+function ChatView({ characterId, data, useItemId }: { characterId: string; data: CharacterDoc | undefined; useItemId?: string | null }) {
+  const { messages, send, loading, ready, error } = useChat(characterId)
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
+  const autoSentRef = useRef(false)
+  // Keep a ref to the latest send so the effect doesn't re-run whenever send changes
+  const sendRef = useRef(send)
+  sendRef.current = send
+
+  // Auto-send "使用[itemName]" when navigated from inventory
+  useEffect(() => {
+    if (!useItemId || !ready || autoSentRef.current) return
+    autoSentRef.current = true
+    getDoc(doc(db, 'items', useItemId)).then((snap) => {
+      if (!snap.exists()) return
+      const itemName = snap.data().name as string
+      sendRef.current(`使用${itemName}`, useItemId)
+      // Clean up URL param without triggering React navigation (avoids Suspense reset)
+      window.history.replaceState(null, '', `/chat/${characterId}`)
+    })
+  }, [useItemId, ready, characterId])
 
   useEffect(() => {
     const node = listRef.current
@@ -91,9 +109,11 @@ function ChatView({ characterId, data }: { characterId: string; data: CharacterD
   )
 }
 
-export default function CharacterChatPage() {
+function CharacterChatPageContent() {
   const { id } = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const characterId = id || 'default'
+  const useItemId = searchParams.get('useItem')
   const [value] = useDocument(
     characterId !== 'default' ? doc(db, 'characters', characterId) : undefined,
   )
@@ -140,7 +160,12 @@ export default function CharacterChatPage() {
             </span>
           )}
         </div>
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end items-center gap-3">
+          {teamCode && (
+            <Link href={`/inventory?from=${characterId}`} className="text-sm text-white/80 shrink-0">
+              背包
+            </Link>
+          )}
           {setupComplete && (
             <button className="text-sm text-white shrink-0" onClick={handleClear}>
               重設任務
@@ -159,8 +184,12 @@ export default function CharacterChatPage() {
           onComplete={handleSetupComplete}
         />
       ) : (
-        <ChatView characterId={characterId} data={data} />
+        <ChatView characterId={characterId} data={data} useItemId={useItemId} />
       )}
     </div>
   )
+}
+
+export default function CharacterChatPage() {
+  return <Suspense><CharacterChatPageContent /></Suspense>
 }

@@ -116,6 +116,7 @@ export async function updateCharacter(
       responses,
     }
     if (rule.type) newRule.type = rule.type
+    if (rule.itemTriggers?.length) newRule.itemTriggers = rule.itemTriggers
     processedRules.push(newRule)
   }
 

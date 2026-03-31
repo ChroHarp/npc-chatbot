@@ -133,7 +133,7 @@ conversations/{conversationId}      // 新增欄位
 
 ---
 
-## Phase 2：物件系統
+## Phase 2：物件系統 ✅ 已完成（branch: `phase/2-items`）
 
 **目的**：Admin 定義物件，玩家在遊戲中收集/使用物件，隊伍共享背包。
 
@@ -192,11 +192,25 @@ teams/{teamCode}/inventoryLog/{logId}   // 操作紀錄
 | `src/app/admin/page.tsx` | 新增「Items」連結 |
 
 ### 驗證方式
-- [ ] Admin 建立物件 → 確認列表顯示
-- [ ] 玩家呼叫 pickup API → 背包頁面顯示物件
-- [ ] 重複拾取 → 數量遞增
-- [ ] 使用物件 → 數量遞減
-- [ ] 同隊兩支手機即時同步背包
+- [x] Admin 建立物件 → 確認列表顯示
+- [x] NPC 規則觸發 → 派發物件至隊伍背包
+- [x] 不可疊加物品重複取得 → 顯示「已達持有上限」
+- [x] 玩家從背包使用物件 → 觸發角色規則，扣除物品
+- [x] 未觸發規則時使用物品 → 顯示 default 回應，不扣除物品
+- [x] 同隊兩支手機即時同步背包
+
+**實作完成：**
+- `ItemDoc` type + `TeamDoc.inventory` 欄位
+- Admin `/admin/items`：新增、列表、編輯（圖片上傳 + 縮放調整）、刪除
+- `useInventory` hook：即時監聽隊伍背包（Firestore onSnapshot）
+- `ItemCard` 元件：圖片、名稱、數量 badge
+- 玩家背包頁 `/inventory`：3 欄 grid，即時同步，點擊物品跳出使用 modal
+- 聊天 header 加入「背包」連結（有小隊時顯示）
+- 角色規則新增「觸發物品」（`itemTriggers`）：持有特定物品並送出時觸發
+- 角色規則新增「派發物品」回應（`type: 'item'`）：觸發後給予物品
+- 物品使用流程：背包 → 跳回角色對話 → 自動送出「使用X」→ 觸發則扣物品 + 顯示回應
+- 物品有圖片時，派發訊息泡泡中顯示圖片
+- 修復 React Strict Mode 雙重 `init()` 導致使用者訊息被覆蓋的問題
 
 ---
 

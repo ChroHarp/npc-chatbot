@@ -1,5 +1,5 @@
 export interface ResponseItem {
-  type: 'text' | 'image'
+  type: 'text' | 'image' | 'item'
   value: string | File
   scale?: number
   x?: number
@@ -8,6 +8,7 @@ export interface ResponseItem {
 
 export interface Rule {
   keywords: string[]
+  itemTriggers?: string[]
   responses: ResponseItem[]
   type?: 'firstLogin' | 'default'
 }
@@ -37,6 +38,22 @@ export interface TeamDoc {
   taskProgress: Record<string, 'locked' | 'active' | 'completed'>
   /** Shared conversations per character: characterId → conversationId */
   conversations?: Record<string, string>
+  /** Team inventory: itemId → quantity */
+  inventory?: Record<string, number>
   /** Firestore TTL field — document auto-deleted 48h after team creation */
   expireAt: import('firebase/firestore').Timestamp
+}
+
+export interface ItemDoc {
+  name: string
+  description?: string
+  imageUrl?: string
+  imageScale?: number
+  imageX?: number
+  imageY?: number
+  category?: string
+  stackable: boolean
+  maxPerTeam?: number
+  createdAt: import('firebase/firestore').Timestamp
+  order?: number
 }
