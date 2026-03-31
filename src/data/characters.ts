@@ -2,6 +2,7 @@ import type { ResponseItem, CharacterDoc } from '@/types'
 
 export interface CharacterRule {
   keywords: string[]
+  itemTriggers?: string[]
   responses: ResponseItem[]
 }
 
@@ -91,9 +92,10 @@ export async function getCharacter(id: string): Promise<CharacterData> {
         greeting,
         rules: others.map((r) => ({
           keywords: r.keywords || [],
+          itemTriggers: r.itemTriggers || [],
           responses:
             (r.responses?.map((res) => ({
-              type: res.type as 'text' | 'image',
+              type: res.type as 'text' | 'image' | 'item',
               value: res.value as string,
             })) as ResponseItem[]) || [],
         })),

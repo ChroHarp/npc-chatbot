@@ -8,6 +8,7 @@ export interface ResponseItem {
 
 export interface Rule {
   keywords: string[]
+  itemTriggers?: string[]
   responses: ResponseItem[]
   type?: 'firstLogin' | 'default'
 }

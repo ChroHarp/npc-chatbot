@@ -31,6 +31,7 @@ export default function EditCharacterPage() {
   const [avatarY, setAvatarY] = useState(0)
   const [tasks, setTasks] = useState<string[]>([])
   const [itemSelectRule, setItemSelectRule] = useState<number | null>(null)
+  const [itemTriggerSelectRule, setItemTriggerSelectRule] = useState<number | null>(null)
   const [dragRule, setDragRule] = useState<number | null>(null)
   const [dragResponse, setDragResponse] = useState<{
     rule: number
@@ -313,6 +314,80 @@ export default function EditCharacterPage() {
                   </>
                 )}
               </div>
+              {!rule.type && (
+                <div>
+                  <span className="font-medium">觸發物品 item triggers</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(rule.itemTriggers ?? []).map((tid, tidx) => {
+                      const itemName = itemsSnap?.docs.find((d) => d.id === tid)?.data()?.name ?? tid
+                      return (
+                        <span
+                          key={tidx}
+                          className="px-2 py-1 text-sm bg-orange-100 border border-orange-300 rounded flex items-center gap-1"
+                        >
+                          🎯 {itemName}
+                          <button
+                            type="button"
+                            className="text-xs text-red-600"
+                            onClick={() =>
+                              setRules((r) =>
+                                r.map((rr, ridx) =>
+                                  ridx === i
+                                    ? { ...rr, itemTriggers: (rr.itemTriggers ?? []).filter((_, k) => k !== tidx) }
+                                    : rr,
+                                ),
+                              )
+                            }
+                          >
+                            ×
+                          </button>
+                        </span>
+                      )
+                    })}
+                  </div>
+                  <div className="flex gap-2 mt-1 items-center">
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-sm border rounded"
+                      onClick={() => setItemTriggerSelectRule(i)}
+                    >
+                      新增觸發物品
+                    </button>
+                    {itemTriggerSelectRule === i && (
+                      <select
+                        autoFocus
+                        className="border rounded px-2 py-1 text-sm"
+                        defaultValue=""
+                        onChange={(e) => {
+                          const itemId = e.target.value
+                          if (!itemId) return
+                          setRules((r) =>
+                            r.map((rr, idx) =>
+                              idx === i
+                                ? { ...rr, itemTriggers: [...(rr.itemTriggers ?? []), itemId] }
+                                : rr,
+                            ),
+                          )
+                          setItemTriggerSelectRule(null)
+                        }}
+                        onBlur={() => setItemTriggerSelectRule(null)}
+                      >
+                        <option value="">選擇物品</option>
+                        {itemsSnap?.docs
+                          .filter((d) => !(rule.itemTriggers ?? []).includes(d.id))
+                          .map((d) => {
+                            const item = d.data() as ItemDoc
+                            return (
+                              <option key={d.id} value={d.id}>
+                                {item.name}
+                              </option>
+                            )
+                          })}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <span className="font-medium">回應內容 reply</span>
                 {rule.responses.map((res, j) => (

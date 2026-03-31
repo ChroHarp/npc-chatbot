@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -88,7 +88,7 @@ function UseItemModal({
   )
 }
 
-export default function InventoryPage() {
+function InventoryPageContent() {
   const searchParams = useSearchParams()
   const fromCharId = searchParams.get('from')
 
@@ -152,4 +152,8 @@ export default function InventoryPage() {
       )}
     </div>
   )
+}
+
+export default function InventoryPage() {
+  return <Suspense><InventoryPageContent /></Suspense>
 }

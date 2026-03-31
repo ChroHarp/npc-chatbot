@@ -27,7 +27,9 @@ export async function POST(req: Request) {
   const lowerMsg = message.toLowerCase()
   for (let i = 0; i < character.rules.length; i++) {
     const rule = character.rules[i]
-    if (rule.keywords.some((k) => lowerMsg.includes(k.toLowerCase()))) {
+    const keywordMatch = rule.keywords.some((k) => lowerMsg.includes(k.toLowerCase()))
+    const itemTriggerMatch = itemId != null && (rule.itemTriggers ?? []).includes(itemId)
+    if (keywordMatch || itemTriggerMatch) {
       responses = rule.responses
       ruleMatched = true
       break
@@ -91,6 +93,10 @@ export async function POST(req: Request) {
             role: 'npc',
             type: 'ITEM',
             content: itemName,
+            itemImageUrl: item.imageUrl ?? undefined,
+            itemImageScale: item.imageScale ?? undefined,
+            itemImageX: item.imageX ?? undefined,
+            itemImageY: item.imageY ?? undefined,
             avatarUrl: character.avatarUrl,
             avatarX: character.avatarX,
             avatarY: character.avatarY,

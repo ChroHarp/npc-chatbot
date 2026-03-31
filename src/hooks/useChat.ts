@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import type { ChatMessage } from '@/types/chat'
 import { auth, db } from '@/libs/firebase'
 import { doc, getDoc, updateDoc, deleteField } from 'firebase/firestore'
@@ -20,6 +20,7 @@ interface PostResponse {
 export function useChat(characterId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
+  const conversationIdRef = useRef<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -71,6 +72,7 @@ export function useChat(characterId: string) {
 
           if (teamConvId) {
             localStorage.setItem(storageKey, teamConvId)
+            conversationIdRef.current = teamConvId
             setConversationId(teamConvId)
             const res = await fetch(`/api/chat/history?conversationId=${teamConvId}`)
             if (!res.ok) {
@@ -95,11 +97,13 @@ export function useChat(characterId: string) {
           // No team: use localStorage cache normally
           const localId = localStorage.getItem(storageKey)
           if (localId) {
+            conversationIdRef.current = localId
             setConversationId(localId)
             const res = await fetch(`/api/chat/history?conversationId=${localId}`)
             if (!res.ok) {
               if (res.status === 404) {
                 localStorage.removeItem(storageKey)
+                conversationIdRef.current = null
                 setConversationId(null)
                 return init(true)
               }
@@ -119,6 +123,7 @@ export function useChat(characterId: string) {
         if (!res.ok) throw new Error('init failed')
         const data: InitResponse = await res.json()
         localStorage.setItem(storageKey, data.conversationId)
+        conversationIdRef.current = data.conversationId
         setConversationId(data.conversationId)
         setMessages([])
 
@@ -142,11 +147,16 @@ export function useChat(characterId: string) {
     [characterId, storageKey],
   )
 
+  // Guard against Strict Mode double-invocation: prevent concurrent init() calls
+  const initCalledRef = useRef(false)
   useEffect(() => {
-    init()
+    if (initCalledRef.current) return
+    initCalledRef.current = true
+    void init()
   }, [init])
 
   async function send(text: string, itemId?: string) {
+    const conversationId = conversationIdRef.current
     if (!conversationId) return
     const local: ChatMessage = {
       id: String(Date.now()),

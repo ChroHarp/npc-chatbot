@@ -1,7 +1,7 @@
 'use client'
-import { useRef, useState, useEffect } from 'react'
+import { Suspense, useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { doc, getDoc } from 'firebase/firestore'
 import { useDocument } from 'react-firebase-hooks/firestore'
 import { db } from '@/libs/firebase'
@@ -15,10 +15,12 @@ import { useChat } from '@/hooks/useChat'
 // Separated so useChat is only mounted after setup is complete
 function ChatView({ characterId, data, useItemId }: { characterId: string; data: CharacterDoc | undefined; useItemId?: string | null }) {
   const { messages, send, loading, ready, error } = useChat(characterId)
-  const router = useRouter()
   const [text, setText] = useState('')
   const listRef = useRef<HTMLDivElement | null>(null)
   const autoSentRef = useRef(false)
+  // Keep a ref to the latest send so the effect doesn't re-run whenever send changes
+  const sendRef = useRef(send)
+  sendRef.current = send
 
   // Auto-send "使用[itemName]" when navigated from inventory
   useEffect(() => {
@@ -27,11 +29,11 @@ function ChatView({ characterId, data, useItemId }: { characterId: string; data:
     getDoc(doc(db, 'items', useItemId)).then((snap) => {
       if (!snap.exists()) return
       const itemName = snap.data().name as string
-      send(`使用${itemName}`, useItemId)
-      // Clean up URL param after sending
-      router.replace(`/chat/${characterId}`, { scroll: false })
+      sendRef.current(`使用${itemName}`, useItemId)
+      // Clean up URL param without triggering React navigation (avoids Suspense reset)
+      window.history.replaceState(null, '', `/chat/${characterId}`)
     })
-  }, [useItemId, ready, characterId, router, send])
+  }, [useItemId, ready, characterId])
 
   useEffect(() => {
     const node = listRef.current
@@ -107,7 +109,7 @@ function ChatView({ characterId, data, useItemId }: { characterId: string; data:
   )
 }
 
-export default function CharacterChatPage() {
+function CharacterChatPageContent() {
   const { id } = useParams<{ id: string }>()
   const searchParams = useSearchParams()
   const characterId = id || 'default'
@@ -186,4 +188,8 @@ export default function CharacterChatPage() {
       )}
     </div>
   )
+}
+
+export default function CharacterChatPage() {
+  return <Suspense><CharacterChatPageContent /></Suspense>
 }
