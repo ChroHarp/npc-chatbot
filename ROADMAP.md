@@ -214,7 +214,7 @@ teams/{teamCode}/inventoryLog/{logId}   // 操作紀錄
 
 ---
 
-## Phase 3：進階聊天觸發系統
+## Phase 3：進階聊天觸發系統 ✅ 已完成（branch: `phase/3-advanced-triggers`）
 
 **目的**：角色規則可設定條件，根據時間、物品、任務狀態觸發不同回應。
 
@@ -258,9 +258,18 @@ Rule {
 | `src/app/admin/characters/actions.ts` | 序列化 conditions 和 priority |
 
 ### 驗證方式
-- [ ] 建立同一 keyword 的兩條規則：無條件（priority 0）、需要特定物品（priority 10）。無物品時觸發低優先，拾取物品後觸發高優先
-- [ ] 時間觸發：設定 5 分鐘後才觸發的規則，確認時間內/時間外回應不同
-- [ ] 向下相容：既有無條件規則仍正常運作
+- [x] 建立同一 keyword 的兩條規則：無條件（priority 0）、需要特定物品（priority 10）。無物品時觸發低優先，拾取物品後觸發高優先
+- [x] 時間觸發：設定 5 分鐘後才觸發的規則，確認時間內/時間外回應不同
+- [x] 向下相容：既有無條件規則仍正常運作
+
+**實作完成：**
+- `RuleCondition` interface + `Rule.conditions` / `Rule.priority` 欄位
+- 修復 `src/data/characters.ts` 靜默丟棄 conditions/priority 的關鍵 bug
+- 純函式規則引擎 `src/lib/ruleEngine.ts`：priority stable sort、AND 條件判斷
+- 條件限定規則（condition-only）：無 keywords / itemTriggers 但有條件 → 任意訊息皆觸發
+- `getConversation()` 回傳 `createdAt`，API route 計算 elapsedMinutes
+- Admin UI：每條規則的「進階設定」預設收起，有設定時自動展開
+- `RuleConditionEditor` 元件：時間窗、requireItems / requireAnyItem / forbidItems / requireTaskComplete pills 選擇器
 
 ---
 
