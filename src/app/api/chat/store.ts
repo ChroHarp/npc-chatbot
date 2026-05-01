@@ -29,14 +29,18 @@ export async function createConversation(
 
 export async function getConversation(
   conversationId: string,
-): Promise<{ characterId: string; teamCode: string | null; uid: string | null } | null> {
+): Promise<{ characterId: string; teamCode: string | null; uid: string | null; createdAt: Date | null } | null> {
   const snap = await getDoc(doc(db, 'conversations', conversationId))
   if (!snap.exists()) return null
   const data = snap.data()
+  const createdAtRaw = data.createdAt
+  const createdAt: Date | null =
+    createdAtRaw instanceof Timestamp ? createdAtRaw.toDate() : null
   return {
     characterId: data.characterId as string,
     teamCode: (data.teamCode as string | null) ?? null,
     uid: (data.uid as string | null) ?? null,
+    createdAt,
   }
 }
 

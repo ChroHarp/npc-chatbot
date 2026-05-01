@@ -4,6 +4,7 @@ import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 import { db } from '@/libs/firebase'
 import { doc, getDoc, updateDoc, increment, deleteField } from 'firebase/firestore'
+import { findMatchingRule, type ConditionContext } from '@/lib/ruleEngine'
 
 export async function POST(req: Request) {
   const { conversationId, message, itemId } = await req.json()
@@ -22,26 +23,40 @@ export async function POST(req: Request) {
   }
 
   const character = await getCharacter(convo.characterId)
+
+  // Fetch team data for condition evaluation
+  let inventory: Record<string, number> = {}
+  let taskProgress: Record<string, string> = {}
+  if (convo.teamCode) {
+    try {
+      const teamSnap = await getDoc(doc(db, 'teams', convo.teamCode))
+      if (teamSnap.exists()) {
+        const d = teamSnap.data()
+        inventory = (d.inventory ?? {}) as Record<string, number>
+        taskProgress = (d.taskProgress ?? {}) as Record<string, string>
+      }
+    } catch {
+      // fallback to empty — conversation continues with default response
+    }
+  }
+  const elapsedMinutes = convo.createdAt
+    ? (Date.now() - convo.createdAt.getTime()) / 60_000
+    : 0
+  const ctx: ConditionContext = { inventory, taskProgress, elapsedMinutes }
+
   let responses = character.defaultResponses
   let ruleMatched = false
-  const lowerMsg = message.toLowerCase()
-  for (let i = 0; i < character.rules.length; i++) {
-    const rule = character.rules[i]
-    const keywordMatch = rule.keywords.some((k) => lowerMsg.includes(k.toLowerCase()))
-    const itemTriggerMatch = itemId != null && (rule.itemTriggers ?? []).includes(itemId)
-    if (keywordMatch || itemTriggerMatch) {
-      responses = rule.responses
-      ruleMatched = true
-      break
-    }
+
+  const matched = findMatchingRule(character.rules, message, itemId, ctx)
+  if (matched) {
+    responses = matched.responses
+    ruleMatched = true
   }
 
   // If player used an item and a non-default rule matched, deduct the item
   if (itemId && ruleMatched && convo.teamCode) {
     try {
       const teamRef = doc(db, 'teams', convo.teamCode)
-      const teamSnap = await getDoc(teamRef)
-      const inventory = (teamSnap.data()?.inventory ?? {}) as Record<string, number>
       const current = inventory[itemId] ?? 0
       if (current >= 1) {
         await updateDoc(teamRef, {

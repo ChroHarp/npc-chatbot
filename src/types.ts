@@ -6,11 +6,22 @@ export interface ResponseItem {
   y?: number
 }
 
+export interface RuleCondition {
+  minElapsedMinutes?: number
+  maxElapsedMinutes?: number
+  requireItems?: string[]
+  requireAnyItem?: string[]
+  forbidItems?: string[]
+  requireTaskComplete?: string[]
+}
+
 export interface Rule {
   keywords: string[]
   itemTriggers?: string[]
   responses: ResponseItem[]
   type?: 'firstLogin' | 'default'
+  conditions?: RuleCondition
+  priority?: number
 }
 
 export interface CharacterDoc {
