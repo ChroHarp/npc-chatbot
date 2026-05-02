@@ -46,6 +46,31 @@ export function evaluateConditions(
   return true
 }
 
+/**
+ * 專門用於「進入對話自動觸發」：只尋找 condition-only 規則（無 keywords、無 itemTriggers、有 conditions），
+ * 不需要玩家送出任何訊息。跳過 firstLogin / default 系統規則。
+ */
+export function findConditionOnlyRule(
+  rules: CharacterRule[],
+  ctx: ConditionContext,
+): CharacterRule | null {
+  const sorted = rules
+    .map((rule, i) => ({ rule, i }))
+    .sort((a, b) => (b.rule.priority ?? 0) - (a.rule.priority ?? 0) || a.i - b.i)
+
+  for (const { rule } of sorted) {
+    const hasConditions = !!rule.conditions && Object.keys(rule.conditions).length > 0
+    const isConditionOnly =
+      hasConditions &&
+      rule.keywords.length === 0 &&
+      (rule.itemTriggers ?? []).length === 0
+    if (isConditionOnly && evaluateConditions(rule.conditions, ctx)) {
+      return rule
+    }
+  }
+  return null
+}
+
 export function findMatchingRule(
   rules: CharacterRule[],
   message: string,
