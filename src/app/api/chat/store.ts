@@ -5,9 +5,11 @@ import {
   setDoc,
   getDoc,
   getDocs,
+  updateDoc,
   serverTimestamp,
   query,
   orderBy,
+  arrayUnion,
   Timestamp,
 } from 'firebase/firestore'
 import type { ChatMessage } from '@/types/chat'
@@ -29,7 +31,7 @@ export async function createConversation(
 
 export async function getConversation(
   conversationId: string,
-): Promise<{ characterId: string; teamCode: string | null; uid: string | null; createdAt: Date | null } | null> {
+): Promise<{ characterId: string; teamCode: string | null; uid: string | null; createdAt: Date | null; triggeredEntryRules: string[] } | null> {
   const snap = await getDoc(doc(db, 'conversations', conversationId))
   if (!snap.exists()) return null
   const data = snap.data()
@@ -41,7 +43,17 @@ export async function getConversation(
     teamCode: (data.teamCode as string | null) ?? null,
     uid: (data.uid as string | null) ?? null,
     createdAt,
+    triggeredEntryRules: (data.triggeredEntryRules ?? []) as string[],
   }
+}
+
+export async function markEntryRuleTriggered(
+  conversationId: string,
+  fingerprint: string,
+): Promise<void> {
+  await updateDoc(doc(db, 'conversations', conversationId), {
+    triggeredEntryRules: arrayUnion(fingerprint),
+  })
 }
 
 export async function addMessages(

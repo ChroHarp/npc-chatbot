@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getConversation, addMessages } from '../store'
+import { getConversation, addMessages, markEntryRuleTriggered } from '../store'
 import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 import { db } from '@/libs/firebase'
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
 import { findConditionOnlyRule, type ConditionContext } from '@/lib/ruleEngine'
+import type { RuleCondition } from '@/types'
+
+/** 產生規則的穩定指紋，用於判斷「是否已觸發過」 */
+function ruleFingerprint(priority: number | undefined, conditions: RuleCondition): string {
+  const sorted = Object.fromEntries(
+    Object.keys(conditions)
+      .sort()
+      .map((k) => [k, conditions[k as keyof RuleCondition]]),
+  )
+  return `p${priority ?? 0}:${JSON.stringify(sorted)}`
+}
 
 export async function POST(req: Request) {
   const { conversationId } = await req.json()
@@ -37,6 +48,12 @@ export async function POST(req: Request) {
 
   const matched = findConditionOnlyRule(character.rules, ctx)
   if (!matched) return NextResponse.json({ messages: [] })
+
+  // 每條 condition-only 規則在同一對話內只觸發一次（重置對話才能再觸發）
+  const fingerprint = ruleFingerprint(matched.priority, matched.conditions!)
+  if (convo.triggeredEntryRules.includes(fingerprint)) {
+    return NextResponse.json({ messages: [] })
+  }
 
   const npcReplies: ChatMessage[] = []
   for (const resp of matched.responses) {
@@ -111,6 +128,9 @@ export async function POST(req: Request) {
   if (npcReplies.length > 0) {
     await addMessages(conversationId, npcReplies)
   }
+
+  // 無論有無回應訊息，都記錄為已觸發（避免條件持續滿足時反覆觸發）
+  await markEntryRuleTriggered(conversationId, fingerprint)
 
   return NextResponse.json({ messages: npcReplies })
 }
