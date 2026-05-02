@@ -1,4 +1,4 @@
-export type MessageType = 'TEXT' | 'IMAGE' | 'YOUTUBE' | 'ITEM'
+export type MessageType = 'TEXT' | 'IMAGE' | 'YOUTUBE' | 'ITEM' | 'SYSTEM'
 export interface ChatMessage {
   id: string
   role: 'user' | 'npc'

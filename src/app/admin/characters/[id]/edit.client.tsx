@@ -508,7 +508,30 @@ export default function EditCharacterPage() {
                     }}
                   >
                     <span className="cursor-move select-none">⋮⋮</span>
-                    {res.type === 'text' ? (
+                    {res.type === 'system' ? (
+                      <textarea
+                        className="border rounded px-2 py-1 flex-1 resize-y min-h-[40px] italic text-gray-500 text-sm bg-gray-50"
+                        placeholder="系統訊息（斜體小字，無泡泡）"
+                        value={res.value as string}
+                        rows={1}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement
+                          target.style.height = 'auto'
+                          target.style.height = `${target.scrollHeight}px`
+                        }}
+                        onChange={(e) => {
+                          setRules((r) =>
+                            r.map((rr, idx) => {
+                              if (idx !== i) return rr
+                              const responses = rr.responses.map((rs, k) =>
+                                k === j ? { ...rs, value: e.target.value } : rs,
+                              )
+                              return { ...rr, responses }
+                            }),
+                          )
+                        }}
+                      />
+                    ) : res.type === 'text' ? (
                       <textarea
                         className="border rounded px-2 py-1 flex-1 resize-y min-h-[40px]"
                         value={res.value as string}
@@ -595,6 +618,21 @@ export default function EditCharacterPage() {
                     }
                   >
                     Add Text
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-sm border rounded italic text-gray-500"
+                    onClick={() =>
+                      setRules((r) =>
+                        r.map((rr, idx) =>
+                          idx === i
+                            ? { ...rr, responses: [...rr.responses, { type: 'system', value: '' }] }
+                            : rr,
+                        ),
+                      )
+                    }
+                  >
+                    Add System
                   </button>
                   <button
                     type="button"

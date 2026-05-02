@@ -127,7 +127,7 @@ export async function POST(req: Request) {
     npcReplies.push({
       id: crypto.randomUUID(),
       role: 'npc',
-      type: resp.type === 'image' ? 'IMAGE' : 'TEXT',
+      type: resp.type === 'image' ? 'IMAGE' : resp.type === 'system' ? 'SYSTEM' : 'TEXT',
       content: resp.value as string,
       avatarUrl: character.avatarUrl,
       avatarX: character.avatarX,

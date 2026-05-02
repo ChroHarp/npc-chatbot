@@ -1,5 +1,5 @@
 export interface ResponseItem {
-  type: 'text' | 'image' | 'item'
+  type: 'text' | 'image' | 'item' | 'system'
   value: string | File
   scale?: number
   x?: number
