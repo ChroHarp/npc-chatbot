@@ -1,9 +1,18 @@
 export interface ResponseItem {
-  type: 'text' | 'image' | 'item'
+  type: 'text' | 'image' | 'item' | 'system'
   value: string | File
   scale?: number
   x?: number
   y?: number
+}
+
+export interface RuleCondition {
+  minElapsedMinutes?: number
+  maxElapsedMinutes?: number
+  requireItems?: string[]
+  requireAnyItem?: string[]
+  forbidItems?: string[]
+  requireTaskComplete?: string[]
 }
 
 export interface Rule {
@@ -11,6 +20,8 @@ export interface Rule {
   itemTriggers?: string[]
   responses: ResponseItem[]
   type?: 'firstLogin' | 'default'
+  conditions?: RuleCondition
+  priority?: number
 }
 
 export interface CharacterDoc {

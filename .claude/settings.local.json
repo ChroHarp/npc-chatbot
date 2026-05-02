@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(netstat -ano)",
+      "Bash(cmd /c \"netstat -ano | findstr :3000\")",
+      "Bash(cmd /c \"netstat -ano | findstr LISTEN | findstr :3000\")",
+      "Bash(cmd /c \"netsh int ipv4 show excludedportrange protocol=tcp | findstr 3000\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git merge:*)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

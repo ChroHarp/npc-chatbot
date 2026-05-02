@@ -6,6 +6,17 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import type { ChatMessage } from '@/types/chat'
 
 export function ChatBubble({ message }: { message: ChatMessage }) {
+  // 系統訊息：置中斜體小字，無泡泡、無頭像、無時間戳
+  if (message.type === 'SYSTEM') {
+    return (
+      <div className="flex justify-center my-3 float-in">
+        <p className="text-sm text-gray-400 italic text-center px-4 leading-relaxed whitespace-pre-wrap">
+          {message.content}
+        </p>
+      </div>
+    )
+  }
+
   const isUser = message.role === 'user'
   const [showImage, setShowImage] = useState(false)
   useEffect(() => {

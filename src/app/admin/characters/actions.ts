@@ -117,6 +117,8 @@ export async function updateCharacter(
     }
     if (rule.type) newRule.type = rule.type
     if (rule.itemTriggers?.length) newRule.itemTriggers = rule.itemTriggers
+    if (typeof rule.priority === 'number' && rule.priority !== 0) newRule.priority = rule.priority
+    if (rule.conditions && Object.keys(rule.conditions).length > 0) newRule.conditions = rule.conditions
     processedRules.push(newRule)
   }
 

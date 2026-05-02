@@ -11,6 +11,7 @@ import Image from 'next/image'
 import { db } from '@/libs/firebase'
 import { updateCharacter } from '../actions'
 import { Rule, CharacterDoc, TaskDoc, ItemDoc } from '@/types'
+import { RuleConditionEditor } from '@/components/RuleConditionEditor'
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024
 
@@ -30,6 +31,7 @@ export default function EditCharacterPage() {
   const [avatarX, setAvatarX] = useState(0)
   const [avatarY, setAvatarY] = useState(0)
   const [tasks, setTasks] = useState<string[]>([])
+  const [showAdvanced, setShowAdvanced] = useState<boolean[]>([])
   const [itemSelectRule, setItemSelectRule] = useState<number | null>(null)
   const [itemTriggerSelectRule, setItemTriggerSelectRule] = useState<number | null>(null)
   const [dragRule, setDragRule] = useState<number | null>(null)
@@ -63,6 +65,13 @@ export default function EditCharacterPage() {
       ]
       setRules(r)
       setKeywordInputs(r.map(() => ''))
+      setShowAdvanced(
+        r.map(
+          (rule) =>
+            (rule.priority != null && rule.priority !== 0) ||
+            (rule.conditions != null && Object.keys(rule.conditions).length > 0),
+        ),
+      )
     }
   }, [value])
 
@@ -70,6 +79,11 @@ export default function EditCharacterPage() {
     setKeywordInputs((inputs) => {
       const arr = [...inputs]
       while (arr.length < rules.length) arr.push('')
+      return arr.slice(0, rules.length)
+    })
+    setShowAdvanced((prev) => {
+      const arr = [...prev]
+      while (arr.length < rules.length) arr.push(false)
       return arr.slice(0, rules.length)
     })
   }, [rules.length])
@@ -388,6 +402,51 @@ export default function EditCharacterPage() {
                   </div>
                 </div>
               )}
+              {!rule.type && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    className="self-start text-xs text-gray-500 border border-dashed rounded px-2 py-0.5 hover:bg-gray-50"
+                    onClick={() =>
+                      setShowAdvanced((prev) =>
+                        prev.map((v, idx) => (idx === i ? !v : v)),
+                      )
+                    }
+                  >
+                    {showAdvanced[i] ? '▾' : '▸'} 進階設定
+                  </button>
+                  {showAdvanced[i] && (
+                    <>
+                      <label className="flex items-center gap-2 text-sm">
+                        優先度 priority
+                        <input
+                          type="number"
+                          className="border rounded px-2 py-1 w-20"
+                          value={rule.priority ?? 0}
+                          onChange={(e) =>
+                            setRules((r) =>
+                              r.map((rr, idx) =>
+                                idx === i ? { ...rr, priority: Number(e.target.value) } : rr,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                      <RuleConditionEditor
+                        conditions={rule.conditions ?? {}}
+                        onChange={(cond) =>
+                          setRules((r) =>
+                            r.map((rr, idx) => (idx === i ? { ...rr, conditions: cond } : rr)),
+                          )
+                        }
+                        itemsSnap={itemsSnap}
+                        taskSnap={taskValue}
+                        characterTasks={tasks}
+                      />
+                    </>
+                  )}
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <span className="font-medium">回應內容 reply</span>
                 {rule.responses.map((res, j) => (
@@ -449,7 +508,30 @@ export default function EditCharacterPage() {
                     }}
                   >
                     <span className="cursor-move select-none">⋮⋮</span>
-                    {res.type === 'text' ? (
+                    {res.type === 'system' ? (
+                      <textarea
+                        className="border rounded px-2 py-1 flex-1 resize-y min-h-[40px] italic text-gray-500 text-sm bg-gray-50"
+                        placeholder="系統訊息（斜體小字，無泡泡）"
+                        value={res.value as string}
+                        rows={1}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement
+                          target.style.height = 'auto'
+                          target.style.height = `${target.scrollHeight}px`
+                        }}
+                        onChange={(e) => {
+                          setRules((r) =>
+                            r.map((rr, idx) => {
+                              if (idx !== i) return rr
+                              const responses = rr.responses.map((rs, k) =>
+                                k === j ? { ...rs, value: e.target.value } : rs,
+                              )
+                              return { ...rr, responses }
+                            }),
+                          )
+                        }}
+                      />
+                    ) : res.type === 'text' ? (
                       <textarea
                         className="border rounded px-2 py-1 flex-1 resize-y min-h-[40px]"
                         value={res.value as string}
@@ -535,7 +617,22 @@ export default function EditCharacterPage() {
                       )
                     }
                   >
-                    Add Text
+                    增加回應
+                  </button>
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-sm border rounded italic text-gray-500"
+                    onClick={() =>
+                      setRules((r) =>
+                        r.map((rr, idx) =>
+                          idx === i
+                            ? { ...rr, responses: [...rr.responses, { type: 'system', value: '' }] }
+                            : rr,
+                        ),
+                      )
+                    }
+                  >
+                    增加敘述
                   </button>
                   <button
                     type="button"
@@ -545,14 +642,14 @@ export default function EditCharacterPage() {
                       fileInputRef.current?.click()
                     }}
                   >
-                    Add Image
+                    增加圖片
                   </button>
                   <button
                     type="button"
                     className="px-2 py-1 text-sm border rounded"
                     onClick={() => setItemSelectRule(i)}
                   >
-                    Add Item
+                    增加物件
                   </button>
                   {itemSelectRule === i && (
                     <select
@@ -593,6 +690,7 @@ export default function EditCharacterPage() {
                       if (confirm('確定要刪除這條規則嗎？')) {
                         setRules((r) => r.filter((_, idx) => idx !== i))
                         setKeywordInputs((ins) => ins.filter((_, idx) => idx !== i))
+                        setShowAdvanced((prev) => prev.filter((_, idx) => idx !== i))
                       }
                     }}
                   >

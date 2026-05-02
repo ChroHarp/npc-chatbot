@@ -1,9 +1,11 @@
-import type { ResponseItem, CharacterDoc } from '@/types'
+import type { ResponseItem, CharacterDoc, RuleCondition } from '@/types'
 
 export interface CharacterRule {
   keywords: string[]
   itemTriggers?: string[]
   responses: ResponseItem[]
+  conditions?: RuleCondition
+  priority?: number
 }
 
 export interface CharacterData {
@@ -98,6 +100,8 @@ export async function getCharacter(id: string): Promise<CharacterData> {
               type: res.type as 'text' | 'image' | 'item',
               value: res.value as string,
             })) as ResponseItem[]) || [],
+          conditions: r.conditions,
+          priority: r.priority,
         })),
         defaultResponses,
       }

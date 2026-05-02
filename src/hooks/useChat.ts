@@ -25,6 +25,27 @@ export function useChat(characterId: string) {
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const storageKey = `conversationId-${characterId}`
+  // 每次掛載只觸發一次 entry-trigger（防止同一 session 重複觸發）
+  const autoTriggeredRef = useRef(false)
+
+  async function runEntryTrigger(convId: string) {
+    if (autoTriggeredRef.current) return
+    autoTriggeredRef.current = true
+    try {
+      const res = await fetch('/api/chat/entry-trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId: convId }),
+      })
+      if (!res.ok) return
+      const data: PostResponse = await res.json()
+      if (data.messages.length > 0) {
+        void appendMessagesSequentially(data.messages)
+      }
+    } catch {
+      // silent — entry-trigger 失敗不影響對話
+    }
+  }
 
   async function appendMessagesSequentially(msgs: ChatMessage[]) {
     for (let i = 0; i < msgs.length; i++) {
@@ -90,6 +111,8 @@ export function useChat(characterId: string) {
             }
             const data: HistoryResponse = await res.json()
             setMessages(data.messages || [])
+            // 既有對話重新進入：檢查 condition-only 自動觸發
+            void runEntryTrigger(teamConvId)
             return
           }
           // Team has no conversation for this character yet — create one below
@@ -111,6 +134,8 @@ export function useChat(characterId: string) {
             }
             const data: HistoryResponse = await res.json()
             setMessages(data.messages || [])
+            // 既有對話重新進入：檢查 condition-only 自動觸發
+            void runEntryTrigger(localId)
             return
           }
         }
@@ -136,7 +161,10 @@ export function useChat(characterId: string) {
           } catch {}
         }
 
-        void appendMessagesSequentially(data.messages || [])
+        // 新對話：firstLogin 動畫結束後才觸發 entry-trigger，確保訊息順序正確
+        appendMessagesSequentially(data.messages || []).then(() => {
+          if (conversationIdRef.current) void runEntryTrigger(conversationIdRef.current)
+        })
       } catch {
         setError('載入失敗')
       } finally {

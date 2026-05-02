@@ -1,30 +1,31 @@
 import { NextResponse } from 'next/server'
-import { getConversation, addMessages } from './store'
+import { getConversation, addMessages, markEntryRuleTriggered } from '../store'
 import type { ChatMessage } from '@/types/chat'
 import { getCharacter } from '@/data/characters'
 import { db } from '@/libs/firebase'
-import { doc, getDoc, updateDoc, increment, deleteField } from 'firebase/firestore'
-import { findMatchingRule, type ConditionContext } from '@/lib/ruleEngine'
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
+import { findConditionOnlyRule, type ConditionContext } from '@/lib/ruleEngine'
+import type { RuleCondition } from '@/types'
+
+/** 產生規則的穩定指紋，用於判斷「是否已觸發過」 */
+function ruleFingerprint(priority: number | undefined, conditions: RuleCondition): string {
+  const sorted = Object.fromEntries(
+    Object.keys(conditions)
+      .sort()
+      .map((k) => [k, conditions[k as keyof RuleCondition]]),
+  )
+  return `p${priority ?? 0}:${JSON.stringify(sorted)}`
+}
 
 export async function POST(req: Request) {
-  const { conversationId, message, itemId } = await req.json()
-  if (!conversationId || typeof message !== 'string') {
-    return new NextResponse('Bad Request', { status: 400 })
-  }
+  const { conversationId } = await req.json()
+  if (!conversationId) return new NextResponse('Bad Request', { status: 400 })
+
   const convo = await getConversation(conversationId)
   if (!convo) return new NextResponse('Not Found', { status: 404 })
 
-  const userMsg: ChatMessage = {
-    id: crypto.randomUUID(),
-    role: 'user',
-    type: 'TEXT',
-    content: message,
-    timestamp: new Date().toISOString(),
-  }
-
   const character = await getCharacter(convo.characterId)
 
-  // Fetch team data for condition evaluation
   let inventory: Record<string, number> = {}
   let taskProgress: Record<string, string> = {}
   if (convo.teamCode) {
@@ -36,41 +37,28 @@ export async function POST(req: Request) {
         taskProgress = (d.taskProgress ?? {}) as Record<string, string>
       }
     } catch {
-      // fallback to empty — conversation continues with default response
+      // fallback to empty — don't block entry
     }
   }
+
   const elapsedMinutes = convo.createdAt
     ? (Date.now() - convo.createdAt.getTime()) / 60_000
     : 0
   const ctx: ConditionContext = { inventory, taskProgress, elapsedMinutes }
 
-  let responses = character.defaultResponses
-  let ruleMatched = false
+  const matched = findConditionOnlyRule(character.rules, ctx)
+  if (!matched) return NextResponse.json({ messages: [] })
 
-  const matched = findMatchingRule(character.rules, message, itemId, ctx)
-  if (matched) {
-    responses = matched.responses
-    ruleMatched = true
-  }
-
-  // If player used an item and a non-default rule matched, deduct the item
-  if (itemId && ruleMatched && convo.teamCode) {
-    try {
-      const teamRef = doc(db, 'teams', convo.teamCode)
-      const current = inventory[itemId] ?? 0
-      if (current >= 1) {
-        await updateDoc(teamRef, {
-          [`inventory.${itemId}`]: current === 1 ? deleteField() : increment(-1),
-        })
-      }
-    } catch {
-      // Deduction failed silently — don't block the conversation
-    }
+  // 每條 condition-only 規則在同一對話內只觸發一次（重置對話才能再觸發）
+  const fingerprint = ruleFingerprint(matched.priority, matched.conditions!)
+  if (convo.triggeredEntryRules.includes(fingerprint)) {
+    return NextResponse.json({ messages: [] })
   }
 
   const npcReplies: ChatMessage[] = []
-  for (const resp of responses) {
+  for (const resp of matched.responses) {
     if (resp.type === 'item') {
+      // 進入觸發也支援派發物品（不扣除玩家物品）
       if (convo.teamCode) {
         const itemId = resp.value as string
         try {
@@ -81,10 +69,9 @@ export async function POST(req: Request) {
           if (!itemSnap.exists()) continue
           const item = itemSnap.data()
           const itemName = item.name as string
-          const inventory = (teamSnap.data()?.inventory ?? {}) as Record<string, number>
-          const current = inventory[itemId] ?? 0
+          const currentInv = (teamSnap.data()?.inventory ?? {}) as Record<string, number>
+          const current = currentInv[itemId] ?? 0
 
-          // Respect stackable and maxPerTeam constraints
           if ((!item.stackable && current >= 1) || (item.maxPerTeam != null && current >= item.maxPerTeam)) {
             npcReplies.push({
               id: crypto.randomUUID(),
@@ -119,11 +106,12 @@ export async function POST(req: Request) {
             timestamp: new Date().toISOString(),
           })
         } catch {
-          // item dispatch failed silently — don't break the conversation
+          // silent fail
         }
       }
       continue
     }
+
     npcReplies.push({
       id: crypto.randomUUID(),
       role: 'npc',
@@ -137,6 +125,12 @@ export async function POST(req: Request) {
     })
   }
 
-  await addMessages(conversationId, [userMsg, ...npcReplies])
+  if (npcReplies.length > 0) {
+    await addMessages(conversationId, npcReplies)
+  }
+
+  // 無論有無回應訊息，都記錄為已觸發（避免條件持續滿足時反覆觸發）
+  await markEntryRuleTriggered(conversationId, fingerprint)
+
   return NextResponse.json({ messages: npcReplies })
 }
