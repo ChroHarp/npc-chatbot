@@ -10,7 +10,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   if (message.type === 'SYSTEM') {
     return (
       <div className="flex justify-center my-3 float-in">
-        <p className="text-xs text-gray-400 italic text-center px-4 leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm text-gray-400 italic text-center px-4 leading-relaxed whitespace-pre-wrap">
           {message.content}
         </p>
       </div>

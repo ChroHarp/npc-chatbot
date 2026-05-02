@@ -617,7 +617,7 @@ export default function EditCharacterPage() {
                       )
                     }
                   >
-                    Add Text
+                    增加回應
                   </button>
                   <button
                     type="button"
@@ -632,7 +632,7 @@ export default function EditCharacterPage() {
                       )
                     }
                   >
-                    Add System
+                    增加敘述
                   </button>
                   <button
                     type="button"
@@ -642,14 +642,14 @@ export default function EditCharacterPage() {
                       fileInputRef.current?.click()
                     }}
                   >
-                    Add Image
+                    增加圖片
                   </button>
                   <button
                     type="button"
                     className="px-2 py-1 text-sm border rounded"
                     onClick={() => setItemSelectRule(i)}
                   >
-                    Add Item
+                    增加物件
                   </button>
                   {itemSelectRule === i && (
                     <select

@@ -76,8 +76,8 @@ export async function POST(req: Request) {
             npcReplies.push({
               id: crypto.randomUUID(),
               role: 'npc',
-              type: 'TEXT',
-              content: `（已達「${itemName}」持有上限）`,
+              type: 'SYSTEM',
+              content: `已達「${itemName}」持有上限`,
               avatarUrl: character.avatarUrl,
               avatarX: character.avatarX,
               avatarY: character.avatarY,
